@@ -1,0 +1,3 @@
+import { guardManagedPluginWrite } from '../plugins/module-lifecycle.server'
+import { createFileRoute } from '@tanstack/react-router'
+export const Route = createFileRoute('/api/premium-platforms')({ server: { handlers: { GET: async ({ request }) => guardManagedPluginWrite(request, 'premium', req => import('../server/premium-platform-api.server').then(({ premiumPlatformApi }) => premiumPlatformApi(req))), POST: async ({ request }) => guardManagedPluginWrite(request, 'premium', req => import('../server/premium-platform-api.server').then(({ premiumPlatformApi }) => premiumPlatformApi(req))) } } })

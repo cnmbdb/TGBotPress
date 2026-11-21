@@ -1,0 +1,58 @@
+{
+  "name": "@tgbotpress/plugin-transit",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./rates": {
+      "types": "./src/rates.d.ts",
+      "import": "./src/rates.js"
+    },
+    "./units": {
+      "types": "./src/units.d.ts",
+      "import": "./src/units.js"
+    },
+    "./poll": {
+      "types": "./src/poll.d.ts",
+      "import": "./src/poll.js"
+    },
+    "./private-key": {
+      "types": "./src/private-key.d.ts",
+      "import": "./src/private-key.js"
+    },
+    "./rates.js": {
+      "types": "./src/rates.d.ts",
+      "import": "./src/rates.js"
+    },
+    "./units.js": {
+      "types": "./src/units.d.ts",
+      "import": "./src/units.js"
+    },
+    "./poll.js": {
+      "types": "./src/poll.d.ts",
+      "import": "./src/poll.js"
+    },
+    "./private-key.js": {
+      "types": "./src/private-key.d.ts",
+      "import": "./src/private-key.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@tgbotpress/plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@tgbotpress/plugin-sdk": "file:../plugin-sdk"
+  }
+}

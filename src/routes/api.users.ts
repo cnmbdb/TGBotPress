@@ -1,0 +1,2 @@
+import { createFileRoute } from '@tanstack/react-router'
+export const Route=createFileRoute('/api/users')({server:{handlers:{GET:async({request})=>(await import('../plugins/registry.server')).registeredGroupManagement.admin.guard(request, req => import('../server/users-api.server').then(({ usersApi }) => usersApi(req))),POST:async({request})=>(await import('../plugins/registry.server')).registeredGroupManagement.admin.guard(request, req => import('../server/users-api.server').then(({ usersApi }) => usersApi(req)))}}})

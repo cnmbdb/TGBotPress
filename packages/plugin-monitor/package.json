@@ -1,0 +1,34 @@
+{
+  "name": "@tgbotpress/plugin-monitor",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./block": {
+      "types": "./src/block.d.ts",
+      "import": "./src/block.js"
+    },
+    "./block.js": {
+      "types": "./src/block.d.ts",
+      "import": "./src/block.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@tgbotpress/plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@tgbotpress/plugin-sdk": "file:../plugin-sdk"
+  }
+}

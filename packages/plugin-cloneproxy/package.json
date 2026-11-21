@@ -1,0 +1,68 @@
+{
+  "name": "@tgbotpress/plugin-cloneproxy",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./revenue": {
+      "types": "./src/revenue.d.ts",
+      "import": "./src/revenue.js"
+    },
+    "./settlement": {
+      "types": "./src/settlement.d.ts",
+      "import": "./src/settlement.js"
+    },
+    "./onboarding": {
+      "types": "./src/onboarding.d.ts",
+      "import": "./src/onboarding.js"
+    },
+    "./token-intake": {
+      "types": "./src/token-intake.d.ts",
+      "import": "./src/token-intake.js"
+    },
+    "./admin-api": {
+      "types": "./src/admin-api.d.ts",
+      "import": "./src/admin-api.js"
+    },
+    "./revenue.js": {
+      "types": "./src/revenue.d.ts",
+      "import": "./src/revenue.js"
+    },
+    "./settlement.js": {
+      "types": "./src/settlement.d.ts",
+      "import": "./src/settlement.js"
+    },
+    "./onboarding.js": {
+      "types": "./src/onboarding.d.ts",
+      "import": "./src/onboarding.js"
+    },
+    "./token-intake.js": {
+      "types": "./src/token-intake.d.ts",
+      "import": "./src/token-intake.js"
+    },
+    "./admin-api.js": {
+      "types": "./src/admin-api.d.ts",
+      "import": "./src/admin-api.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "zod": "^4.6.7",
+    "@tgbotpress/plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@tgbotpress/plugin-sdk": "file:../plugin-sdk",
+    "zod": "^4.6.7"
+  }
+}

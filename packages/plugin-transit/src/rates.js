@@ -1,0 +1,5 @@
+function parseDecimal(value) { const match=/^([+-]?)(0|[1-9]\d*)(?:\.(\d+))?$/.exec(value.trim()); if(!match)return null; const fraction=match[3]??''; if(fraction.length>18)return null; return {coefficient:BigInt(match[2]+fraction)*(match[1]==='-'?-1n:1n),scale:fraction.length} }
+function toCents(value) { const parsed=parseDecimal(value); return !parsed||parsed.scale>2?null:parsed.coefficient*(10n**BigInt(2-parsed.scale)) }
+function centsText(cents) { const sign=cents<0n?'-':''; const absolute=cents<0n?-cents:cents; return sign+(absolute/100n).toString()+'.'+(absolute%100n).toString().padStart(2,'0') }
+export function realtimeRateFromIndexPrice(indexPrice) { const parsed=parseDecimal(indexPrice); if(!parsed||parsed.coefficient<=0n)return null; return centsText((100n*(10n**BigInt(parsed.scale))+parsed.coefficient/2n)/parsed.coefficient) }
+export function calculateRealtimeExchangeRate(indexRate,profitRate,mode) { const base=toCents(indexRate),profit=toCents(profitRate); if(base===null||profit===null||![1,3].includes(mode))return null; const rate=mode===1?base-profit:(base*(100n-profit))/100n; return centsText(rate>100n?rate:100n) }

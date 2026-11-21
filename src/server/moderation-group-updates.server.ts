@@ -1,0 +1,10 @@
+import { db } from './db.server'
+import { scanRecentGroupMessages } from './moderation-scan.server'
+import { telegramCalculatorReply } from './telegram-calculator'
+import { handleTelegramKeywordReply } from './telegram-keyreply.server'
+import { handleTelegramExchangeRate } from './telegram-exchange-rate.server'
+import { lookupTronApprovals } from './telegram-tron-approval-lookup.server'
+import { lookupTronAddress } from './telegram-address-lookup.server'
+import { DISABLED_SECRET_COMMAND_REPLY, isDisabledSensitiveTelegramCommand } from './telegram-disabled-secret-commands.server'
+import { createGroupUpdates } from '@tgbotpress/plugin-groups/group-updates'
+export const { groupMessage, processGroupManagementPluginUpdate, syncTelegramGroupMessages } = createGroupUpdates({ db, scanRecentGroupMessages, telegramCalculatorReply, handleTelegramKeywordReply, handleTelegramExchangeRate, lookupTronApprovals, lookupTronAddress, DISABLED_SECRET_COMMAND_REPLY, isDisabledSensitiveTelegramCommand })

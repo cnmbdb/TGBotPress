@@ -1,0 +1,2 @@
+export const manifest = {"id":"collection","version":"0.1.0","hostRange":">=1.0.0 <2.0.0","sdkVersion":"0.1.0","name":"归集管理","description":"归集钱包和任务","dependencies":["transit"],"menuRoutes":["admin.collection.list.index","admin.collection.wallet.index"],"apiRoutes":["/api/collection-list","/api/collection-wallets"],"tasks":["handlecollectionwallet"],"drainTasks":["handlecollectionwallet"],"configTypes":["command","keyreply","keyreply_keyboard"]}
+export const plugin = { manifest }

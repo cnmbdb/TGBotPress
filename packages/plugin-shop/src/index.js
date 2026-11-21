@@ -1,0 +1,2 @@
+export const manifest = {"id":"shop","version":"0.1.0","hostRange":">=1.0.0 <2.0.0","sdkVersion":"0.1.0","name":"商城管理","description":"商品、订单和商城机器人","dependencies":[],"menuRoutes":["admin.shop.bot.index","admin.shop.goods.index","admin.shop.cdkey.index","admin.shop.order.index"],"apiRoutes":["/api/shop-bots","/api/shop-goods","/api/shop-cdkeys","/api/shop-orders"],"tasks":[],"drainTasks":[],"configTypes":["command","keyreply","keyreply_keyboard"]}
+export const plugin = { manifest }

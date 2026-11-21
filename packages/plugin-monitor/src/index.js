@@ -1,0 +1,2 @@
+export const manifest = { id:'monitor', version:'0.1.0', hostRange: '>=1.0.0 <2.0.0', sdkVersion:'0.1.0', name:'监控管理', description:'机器人和钱包监控', dependencies:[], menuRoutes:['admin.monitor.bot.index','admin.monitor.wallet.index'], apiRoutes:['/api/monitor-bots','/api/monitor-wallets'], tasks:['monitorwalletworker'], drainTasks:['monitorwalletworker'], configTypes:[] }
+export const plugin = { manifest }

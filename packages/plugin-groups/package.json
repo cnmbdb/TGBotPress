@@ -1,0 +1,155 @@
+{
+  "name": "@tgbotpress/plugin-groups",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./tasks": {
+      "types": "./src/tasks.d.ts",
+      "import": "./src/tasks.js"
+    },
+    "./lifecycle.js": {
+      "types": "./src/lifecycle.d.ts",
+      "import": "./src/lifecycle.js"
+    },
+    "./lifecycle": {
+      "types": "./src/lifecycle.d.ts",
+      "import": "./src/lifecycle.js"
+    },
+    "./group-api": {
+      "types": "./src/group-api.d.ts",
+      "import": "./src/group-api.js"
+    },
+    "./users-api": {
+      "types": "./src/users-api.d.ts",
+      "import": "./src/users-api.js"
+    },
+    "./recharge-order-api": {
+      "types": "./src/recharge-order-api.d.ts",
+      "import": "./src/recharge-order-api.js"
+    },
+    "./recharge-trade-api": {
+      "types": "./src/recharge-trade-api.d.ts",
+      "import": "./src/recharge-trade-api.js"
+    },
+    "./moderation-api": {
+      "types": "./src/moderation-api.d.ts",
+      "import": "./src/moderation-api.js"
+    },
+    "./verification-api": {
+      "types": "./src/verification-api.d.ts",
+      "import": "./src/verification-api.js"
+    },
+    "./moderation-scan": {
+      "types": "./src/moderation-scan.d.ts",
+      "import": "./src/moderation-scan.js"
+    },
+    "./ad-challenge": {
+      "types": "./src/ad-challenge.d.ts",
+      "import": "./src/ad-challenge.js"
+    },
+    "./keywords": {
+      "types": "./src/keywords.d.ts",
+      "import": "./src/keywords.js"
+    },
+    "./group-updates": {
+      "types": "./src/group-updates.d.ts",
+      "import": "./src/group-updates.js"
+    },
+    "./groups-page": {
+      "import": "./src/groups-page.js",
+      "types": "./src/groups-page.d.ts"
+    },
+    "./users-page": {
+      "types": "./src/users-page.d.ts",
+      "import": "./src/users-page.js"
+    },
+    "./recharge-orders-page": {
+      "types": "./src/recharge-orders-page.d.ts",
+      "import": "./src/recharge-orders-page.js"
+    },
+    "./recharge-trades-page": {
+      "types": "./src/recharge-trades-page.d.ts",
+      "import": "./src/recharge-trades-page.js"
+    },
+    "./tasks.js": {
+      "types": "./src/tasks.d.ts",
+      "import": "./src/tasks.js"
+    },
+    "./group-api.js": {
+      "types": "./src/group-api.d.ts",
+      "import": "./src/group-api.js"
+    },
+    "./users-api.js": {
+      "types": "./src/users-api.d.ts",
+      "import": "./src/users-api.js"
+    },
+    "./recharge-order-api.js": {
+      "types": "./src/recharge-order-api.d.ts",
+      "import": "./src/recharge-order-api.js"
+    },
+    "./recharge-trade-api.js": {
+      "types": "./src/recharge-trade-api.d.ts",
+      "import": "./src/recharge-trade-api.js"
+    },
+    "./moderation-api.js": {
+      "types": "./src/moderation-api.d.ts",
+      "import": "./src/moderation-api.js"
+    },
+    "./verification-api.js": {
+      "types": "./src/verification-api.d.ts",
+      "import": "./src/verification-api.js"
+    },
+    "./moderation-scan.js": {
+      "types": "./src/moderation-scan.d.ts",
+      "import": "./src/moderation-scan.js"
+    },
+    "./ad-challenge.js": {
+      "types": "./src/ad-challenge.d.ts",
+      "import": "./src/ad-challenge.js"
+    },
+    "./keywords.js": {
+      "types": "./src/keywords.d.ts",
+      "import": "./src/keywords.js"
+    },
+    "./group-updates.js": {
+      "types": "./src/group-updates.d.ts",
+      "import": "./src/group-updates.js"
+    },
+    "./groups-page.js": {
+      "import": "./src/groups-page.js",
+      "types": "./src/groups-page.d.ts"
+    },
+    "./users-page.js": {
+      "types": "./src/users-page.d.ts",
+      "import": "./src/users-page.js"
+    },
+    "./recharge-orders-page.js": {
+      "types": "./src/recharge-orders-page.d.ts",
+      "import": "./src/recharge-orders-page.js"
+    },
+    "./recharge-trades-page.js": {
+      "types": "./src/recharge-trades-page.d.ts",
+      "import": "./src/recharge-trades-page.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@tgbotpress/plugin-sdk": "^0.1.0",
+    "zod": "^4.6.7",
+    "react": "^19.3.1",
+    "@tanstack/react-query": "^5.105.0",
+    "lucide-react": "^1.62.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

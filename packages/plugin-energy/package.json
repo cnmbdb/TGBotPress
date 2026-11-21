@@ -1,0 +1,42 @@
+{
+  "name": "@tgbotpress/plugin-energy",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./units": {
+      "types": "./src/units.d.ts",
+      "import": "./src/units.js"
+    },
+    "./poll": {
+      "types": "./src/poll.d.ts",
+      "import": "./src/poll.js"
+    },
+    "./units.js": {
+      "types": "./src/units.d.ts",
+      "import": "./src/units.js"
+    },
+    "./poll.js": {
+      "types": "./src/poll.d.ts",
+      "import": "./src/poll.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@tgbotpress/plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@tgbotpress/plugin-sdk": "file:../plugin-sdk"
+  }
+}
