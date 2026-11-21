@@ -67,3 +67,55 @@ export const plugin = { manifest }
 - 验证权限、直接访问 API、不同账号的导航，以及机器人配置的共享和人工选择。
 - 验证重复操作、失败重试、并发、重启和回滚；涉及外部服务时检查实际结果。
 - 分别记录本地打包、干净项目导入、宿主集成、远程发布、市场上架和真实安装的结果及未覆盖项。
+
+## 创建插件包：目录与导出示例
+
+建议在隔离目录开始开发，并用独立 ID 区分已有模块。以下包结构是开发示例，不会被宿主自动发现：
+
+```text
+plugin-example/
+├── package.json
+└── src/
+    ├── index.js
+    └── index.d.ts
+```
+
+`package.json` 的最小形式：
+
+```json
+{
+  "name": "@example/plugin-example",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": { "types": "./src/index.d.ts", "import": "./src/index.js" }
+  },
+  "files": ["src"],
+  "peerDependencies": { "@tgbotpress/plugin-sdk": "^0.1.0" }
+}
+```
+
+在 `src/index.js` 填写上方 manifest 和 plugin 示例，并为公开入口提供对应类型声明。发布前确认 SDK 版本及 registry 权限；如果 SDK 未在目标 registry 可用，需要通过开发环境可访问的方式提供匹配版本。示例包名不会绕过当前官方包信任策略。
+
+## 接入点排查
+
+| 能力 | 开始位置 | 开发时需要确认 |
+| --- | --- | --- |
+| 内置模块 | `src/plugins/catalog.ts`、`src/plugins/registry.server.ts` | ID、依赖、状态与实际宿主接线一致 |
+| 后台导航 | `src/lib/plugin-navigation.ts`、`src/config/admin-navigation.ts` | 菜单权限与插件状态；隐藏菜单不等于禁止 API |
+| HTTP API | `src/routes/`、`src/server/` | 身份、角色、来源校验、参数及失败响应 |
+| 后台任务 | `src/server/platform-worker.server.ts`、`src/worker/` | 租约、幂等、并发、停用和排空 |
+| 机器人配置 | `src/plugins/plugin-config-links.server.ts` | 自动及人工归属、共享配置、恢复与刷新 |
+| 数据结构 | `migrations/` | 新旧版本兼容、备份、失败恢复、数据保留 |
+
+现有模块的目录声明和包入口可以作为参考；请继续追踪实际调用者和集成测试，不要把声明当作运行时注册。
+
+## 测试和发布步骤
+
+1. 在不含生产数据的环境中准备依赖和隔离数据库。对 Telegram、支付及链上请求使用模拟服务。
+2. 从仓库根目录运行 `npm run typecheck`、相关测试及 `npm run build`；集成测试按各测试文件的隔离数据库要求配置。
+3. 在插件目录执行 `npm pack --dry-run`，核对代码、类型、许可证及不应发布的凭据。再执行 `npm pack`，在干净项目中安装产物与必要的 peer dependencies，并验证每个公开入口。
+4. 在宿主中逐一验证有权限和无权限访问、重复事件、失败恢复及插件启停。记录运行环境、命令、结果与未覆盖场景。
+5. 确认 npm 包已在目标 registry 发布且可被预期用户安装后，再通过后台填写市场展示资料。ETS 上架、npm 发布与宿主安装互相独立。
+
+对于支付、余额和钱包操作，应在同一事务内维护业务状态，并测试重复请求、进程中断和并发竞争。涉及外部副作用时还需验证重试不会造成重复发放或重复扣款。

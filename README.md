@@ -120,40 +120,7 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
 
 ## 插件开发
 
-### 第一步：了解当前契约
-
-从 [插件 SDK 类型](packages/plugin-sdk/src/index.d.ts)、[内置插件目录](src/plugins/catalog.ts) 和 [示例插件](packages/plugin-cloneproxy/) 开始。插件包通常使用 ESM，根入口导出 `manifest` 和 `plugin`：
-
-```js
-export const manifest = {
-  id: 'example',
-  version: '0.1.0',
-  hostRange: '>=1.0.0 <2.0.0',
-  sdkVersion: '0.1.0',
-  name: '示例插件',
-}
-
-export const plugin = { manifest }
-```
-
-### 第二步：实现并接入
-
-1. 创建插件包，定义 `package.json` 的 `exports`、JavaScript 与类型入口。
-2. 实现业务逻辑，通过接口注入宿主能力，明确权限、数据库、任务与 Telegram 事件的边界。
-3. 按当前宿主结构显式接入菜单、API 和任务；manifest 本身不会自动注册这些功能。
-4. 在隔离环境测试权限、生命周期、失败重试、并发与在途业务，再检查打包内容：
-
-```sh
-cd packages/plugin-example  # 替换为你的插件目录
-npm pack --dry-run
-```
-
-### 第三步：提交市场展示
-
-在后台插件市场登录 ETS，填写插件名称、介绍、npm 安装命令和可选图片后提交。提交展示信息、发布 npm 包、宿主接入和安装验证是独立步骤。
-
-> [!TIP]
-> 插件生命周期、依赖、安全边界和市场提交条件见 **[完整插件开发文档](docs/plugin-development.md)**。第三方插件自动安装和隔离尚未完成，开发者应以当前源码和实测结果为准。
+TGBotPress 提供插件 SDK、模块生命周期和现有插件示例。开发、宿主接入、测试和市场上架的完整步骤见[插件开发文档](docs/plugin-development.md)。当前第三方插件的通用动态安装与隔离仍在开发中。
 
 ## 源码开发与验证
 
