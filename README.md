@@ -2,6 +2,8 @@
 
 # TGBotPress
 
+![TGBotPress 展示动画](docs/images/tgbotpress-demo.gif)
+
 **面向 Telegram Bot 的模块化管理基座与插件生态**
 
 用可复用的基座、清晰的模块边界和插件开发接口，让机器人功能开发与管理更高效。
