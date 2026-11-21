@@ -1,6 +1,6 @@
 # TGBotPress 插件开发文档
 
-本文参考 [TG Ultra TanStack 分支插件开发说明](https://github.com/cnmbdb/tgbot-Ultra-v1-deve/blob/TanStack/docs/plugin-development.md)，并按本仓库当前结构整理。路径均相对仓库根目录；具体接口以源码和测试为准。
+本文介绍 TGBotPress 插件的开发与集成。路径均相对仓库根目录；具体接口以源码和测试为准。
 
 ## 当前能力与边界
 

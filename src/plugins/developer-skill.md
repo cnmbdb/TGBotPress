@@ -1,6 +1,6 @@
 ---
 name: tgbotpress-plugin-development
-description: Develop or migrate a TGBotPress/TG Ultra npm module plugin, including host integration and lifecycle verification.
+description: Develop a TGBotPress npm module plugin, including host integration and lifecycle verification.
 ---
 
 # TGBotPress 插件开发
