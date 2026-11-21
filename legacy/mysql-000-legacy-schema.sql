@@ -2,7 +2,7 @@
 -- Fresh-database legacy schema only. Derived from the project schema snapshot; historical rows and DROP statements are intentionally excluded.
 -- Applied only when the public schema contains no tables. Existing databases are never replayed.
 CREATE TABLE t_admin (
-    id BIGINT AUTO_INCREMENT NOT NULL,
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
     password VARCHAR(100) NOT NULL,
     head VARCHAR(255) DEFAULT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE t_admin (
 
 
 CREATE TABLE t_admin_login_log (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     admin_name VARCHAR(100) NOT NULL,
     login_ip VARCHAR(1000) DEFAULT NULL,
     login_time DATETIME(6),
@@ -32,12 +32,12 @@ CREATE TABLE t_admin_login_log (
 CREATE TABLE t_admin_security_settings (
     rid smallint NOT NULL,
     ip_whitelist_enabled boolean DEFAULT false NOT NULL,
-    ip_whitelist text DEFAULT '' NOT NULL,
+    ip_whitelist text DEFAULT ('') NOT NULL,
     verification_enabled boolean DEFAULT false NOT NULL,
     verification_method VARCHAR(40) DEFAULT 'captcha' NOT NULL,
     session_lifetime_minutes integer DEFAULT 120 NOT NULL,
-    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
+    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
     CONSTRAINT t_admin_security_settings_pkey PRIMARY KEY (rid),
     CONSTRAINT t_admin_security_settings_singleton CHECK (rid = 1)
 );
@@ -65,7 +65,7 @@ CREATE INDEX t_admin_device_session_admin_active_idx ON t_admin_device_session (
 
 
 CREATE TABLE t_bind_a_send_n_binding (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid bigint NOT NULL,
     wallet_addr VARCHAR(100) NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE t_bind_a_send_n_binding (
 
 
 CREATE TABLE t_bind_a_send_n_config (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer,
     is_enable smallint DEFAULT 1 NOT NULL,
     energy_per_send integer DEFAULT 65000 NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE t_bind_a_send_n_config (
 
 
 CREATE TABLE t_bind_a_send_n_grant (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     binding_rid integer NOT NULL,
     bot_rid integer NOT NULL,
     tg_uid bigint NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE t_bind_a_send_n_grant (
 
 
 CREATE TABLE t_collection_wallet (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     chain_type VARCHAR(10) DEFAULT 'trc' NOT NULL,
     wallet_addr VARCHAR(200) NOT NULL,
@@ -150,7 +150,7 @@ CREATE TABLE t_collection_wallet (
 );
 
 CREATE TABLE t_collection_wallet_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     wallet_addr VARCHAR(200) NOT NULL,
     collection_wallet_addr VARCHAR(200) NOT NULL,
     coin_name VARCHAR(20) NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE t_collection_wallet_list (
 
 
 CREATE TABLE t_energy_ai_bishu (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid VARCHAR(100) NOT NULL,
     wallet_addr VARCHAR(100) NOT NULL,
@@ -192,7 +192,7 @@ CREATE TABLE t_energy_ai_bishu (
 
 
 CREATE TABLE t_energy_ai_trusteeship (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid bigint NOT NULL,
     wallet_addr VARCHAR(100) NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE t_energy_ai_trusteeship (
 
 
 CREATE TABLE t_energy_platform (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     poll_group CHAR(1) NOT NULL,
     platform_name smallint NOT NULL,
     status smallint DEFAULT '1' NOT NULL,
@@ -239,7 +239,7 @@ CREATE TABLE t_energy_platform (
 );
 
 CREATE TABLE t_energy_platform_bot (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     poll_group CHAR(1) NOT NULL,
     tg_admin_uid VARCHAR(500) DEFAULT NULL,
@@ -269,7 +269,7 @@ CREATE TABLE t_energy_platform_bot (
 
 
 CREATE TABLE t_energy_platform_order (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     energy_platform_rid integer NOT NULL,
     energy_platform_bot_rid integer NOT NULL,
     platform_name smallint NOT NULL,
@@ -287,7 +287,7 @@ CREATE TABLE t_energy_platform_order (
 
 
 CREATE TABLE t_energy_platform_package (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     package_type smallint DEFAULT '1' NOT NULL,
     package_name VARCHAR(50) NOT NULL,
@@ -310,7 +310,7 @@ CREATE TABLE t_energy_platform_package (
 
 
 CREATE TABLE t_energy_quick_order (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid VARCHAR(100) NOT NULL,
     wallet_addr VARCHAR(100) NOT NULL,
@@ -332,7 +332,7 @@ CREATE TABLE t_energy_quick_order (
 
 
 CREATE TABLE t_energy_special (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer,
     tg_uid bigint,
     wallet_addr VARCHAR(50) NOT NULL,
@@ -349,7 +349,7 @@ CREATE TABLE t_energy_special (
 );
 
 CREATE TABLE t_energy_special_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer,
     tg_uid bigint,
     wallet_addr VARCHAR(50) NOT NULL,
@@ -367,7 +367,7 @@ CREATE TABLE t_energy_special_list (
 
 
 CREATE TABLE t_energy_third_part (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     order_type smallint NOT NULL,
     tg_uid bigint NOT NULL,
     platform_rid integer NOT NULL,
@@ -385,13 +385,13 @@ CREATE TABLE t_energy_third_part (
 
 
 CREATE TABLE t_energy_wallet_trade_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     tx_hash VARCHAR(100) NOT NULL,
     transferfrom_address VARCHAR(200) NOT NULL,
     transferto_address VARCHAR(200) NOT NULL,
     coin_name VARCHAR(20) NOT NULL,
     amount VARCHAR(100) NOT NULL,
-    "timestamp" VARCHAR(20) NOT NULL,
+    `timestamp` VARCHAR(20) NOT NULL,
     process_status smallint DEFAULT '0' NOT NULL,
     process_time DATETIME(6),
     process_comments VARCHAR(2000) DEFAULT NULL,
@@ -406,7 +406,7 @@ CREATE TABLE t_energy_wallet_trade_list (
 
 
 CREATE TABLE t_fms_recharge_order (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     recharge_tg_uid VARCHAR(100) NOT NULL,
     recharge_tg_username VARCHAR(100) DEFAULT NULL,
@@ -425,13 +425,13 @@ CREATE TABLE t_fms_recharge_order (
 
 
 CREATE TABLE t_fms_wallet_trade_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     tx_hash VARCHAR(100) NOT NULL,
     transferfrom_address VARCHAR(200) NOT NULL,
     transferto_address VARCHAR(200) NOT NULL,
     coin_name VARCHAR(20) NOT NULL,
     amount VARCHAR(100) NOT NULL,
-    "timestamp" VARCHAR(20) NOT NULL,
+    `timestamp` VARCHAR(20) NOT NULL,
     process_status smallint DEFAULT '0' NOT NULL,
     process_time DATETIME(6),
     process_comments VARCHAR(255) DEFAULT NULL,
@@ -455,7 +455,7 @@ CREATE TABLE t_model_has_roles (
 );
 
 CREATE TABLE t_monitor_bot (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     status smallint DEFAULT '1' NOT NULL,
     free_monitor_wallet integer DEFAULT 4 NOT NULL,
@@ -472,7 +472,7 @@ CREATE TABLE t_monitor_bot (
 
 
 CREATE TABLE t_monitor_wallet (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     chain_type VARCHAR(10) NOT NULL,
     monitor_wallet VARCHAR(200) NOT NULL,
     status smallint DEFAULT '1' NOT NULL,
@@ -492,7 +492,7 @@ CREATE TABLE t_monitor_wallet (
 
 
 CREATE TABLE t_permissions (
-    id BIGINT AUTO_INCREMENT NOT NULL,
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     guard_name VARCHAR(255) DEFAULT 'web' NOT NULL,
     created_at DATETIME(6),
@@ -503,7 +503,7 @@ CREATE TABLE t_permissions (
 
 
 CREATE TABLE t_premium_platform (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     platform_name smallint NOT NULL,
     tg_admin_uid VARCHAR(500) DEFAULT NULL,
@@ -521,7 +521,7 @@ CREATE TABLE t_premium_platform (
 );
 
 CREATE TABLE t_premium_platform_order (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     premium_platform_rid integer NOT NULL,
     source_type smallint DEFAULT '1' NOT NULL,
@@ -546,7 +546,7 @@ CREATE TABLE t_premium_platform_order (
 
 
 CREATE TABLE t_premium_platform_package (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     premium_platform_rid integer NOT NULL,
     package_name VARCHAR(50) NOT NULL,
@@ -565,13 +565,13 @@ CREATE TABLE t_premium_platform_package (
 
 
 CREATE TABLE t_premium_wallet_trade_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     tx_hash VARCHAR(100) NOT NULL,
     transferfrom_address VARCHAR(200) NOT NULL,
     transferto_address VARCHAR(200) NOT NULL,
     coin_name VARCHAR(20) NOT NULL,
     amount VARCHAR(100) NOT NULL,
-    "timestamp" VARCHAR(20) NOT NULL,
+    `timestamp` VARCHAR(20) NOT NULL,
     process_status smallint DEFAULT '0' NOT NULL,
     process_time DATETIME(6),
     process_comments VARCHAR(255) DEFAULT NULL,
@@ -590,7 +590,7 @@ CREATE TABLE t_role_has_permissions (
 );
 
 CREATE TABLE t_roles (
-    id BIGINT AUTO_INCREMENT NOT NULL,
+    id BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     guard_name VARCHAR(255) DEFAULT 'web' NOT NULL,
     created_at DATETIME(6),
@@ -599,7 +599,7 @@ CREATE TABLE t_roles (
 
 
 CREATE TABLE t_shop_goods (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     goods_name VARCHAR(50) NOT NULL,
     goods_type smallint NOT NULL,
     goods_usdt_price numeric(16,4) DEFAULT 0.0000 NOT NULL,
@@ -613,7 +613,7 @@ CREATE TABLE t_shop_goods (
 );
 
 CREATE TABLE t_shop_goods_bot (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     goods_rid integer NOT NULL,
     bot_rid integer NOT NULL,
     goods_usdt_discount numeric(4,2) DEFAULT 1.00 NOT NULL,
@@ -626,7 +626,7 @@ CREATE TABLE t_shop_goods_bot (
 
 
 CREATE TABLE t_shop_goods_cdkey (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     goods_rid integer NOT NULL,
     cdkey_no VARCHAR(100) NOT NULL,
     cdkey_pwd VARCHAR(2000) NOT NULL,
@@ -641,7 +641,7 @@ CREATE TABLE t_shop_goods_cdkey (
 
 
 CREATE TABLE t_shop_order (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid VARCHAR(50) NOT NULL,
     tg_username VARCHAR(100) DEFAULT NULL,
@@ -655,7 +655,7 @@ CREATE TABLE t_shop_order (
 
 
 CREATE TABLE t_sys_admin_opt_log (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     admin_id integer NOT NULL,
     opt_module VARCHAR(200) DEFAULT NULL,
     opt_ref_sn VARCHAR(100) DEFAULT NULL,
@@ -665,7 +665,7 @@ CREATE TABLE t_sys_admin_opt_log (
 
 
 CREATE TABLE t_sys_config (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     config_key VARCHAR(50) NOT NULL,
     config_val VARCHAR(500) NOT NULL,
     comments VARCHAR(255) NOT NULL,
@@ -677,7 +677,7 @@ CREATE TABLE t_sys_config (
 
 
 CREATE TABLE t_sys_data_dictionary (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     dic_key VARCHAR(100) NOT NULL,
     dic_value VARCHAR(500) NOT NULL,
     dic_name VARCHAR(200) DEFAULT NULL,
@@ -687,7 +687,7 @@ CREATE TABLE t_sys_data_dictionary (
 
 
 CREATE TABLE t_telegram_bot (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_token VARCHAR(100) NOT NULL,
     bot_admin_username VARCHAR(100) DEFAULT '-',
     bot_firstname VARCHAR(100) DEFAULT NULL,
@@ -703,7 +703,7 @@ CREATE TABLE t_telegram_bot (
 );
 
 CREATE TABLE t_telegram_bot_ad (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     notice_cycle smallint DEFAULT '1' NOT NULL,
     notice_obj VARCHAR(200) NOT NULL,
@@ -718,7 +718,7 @@ CREATE TABLE t_telegram_bot_ad (
 );
 
 CREATE TABLE t_telegram_bot_ad_keyboard (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     ad_rid integer NOT NULL,
     keyboard_rid integer NOT NULL,
@@ -731,7 +731,7 @@ CREATE TABLE t_telegram_bot_ad_keyboard (
 
 
 CREATE TABLE t_telegram_bot_command (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     command VARCHAR(50) NOT NULL,
     description VARCHAR(100) NOT NULL,
@@ -745,7 +745,7 @@ CREATE TABLE t_telegram_bot_command (
 
 
 CREATE TABLE t_telegram_bot_group (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     group_type VARCHAR(50) NOT NULL,
     tg_groupid bigint NOT NULL,
@@ -761,7 +761,7 @@ CREATE TABLE t_telegram_bot_group (
 
 
 CREATE TABLE t_telegram_bot_keyboard (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     keyboard_type smallint DEFAULT '1' NOT NULL,
     keyboard_name VARCHAR(20) NOT NULL,
     keyboard_icon_custom_emoji_id VARCHAR(64),
@@ -777,7 +777,7 @@ CREATE TABLE t_telegram_bot_keyboard (
 
 
 CREATE TABLE t_telegram_bot_keyreply (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     key_type smallint NOT NULL,
     monitor_word VARCHAR(500) NOT NULL,
@@ -792,7 +792,7 @@ CREATE TABLE t_telegram_bot_keyreply (
 );
 
 CREATE TABLE t_telegram_bot_keyreply_keyboard (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     keyreply_rid integer NOT NULL,
     keyboard_rid integer NOT NULL,
@@ -806,7 +806,7 @@ CREATE TABLE t_telegram_bot_keyreply_keyboard (
 
 
 CREATE TABLE t_telegram_bot_user (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     bot_rid integer NOT NULL,
     tg_uid bigint NOT NULL,
     tg_username VARCHAR(200) DEFAULT NULL,
@@ -823,7 +823,7 @@ CREATE TABLE t_telegram_bot_user (
 
 
 CREATE TABLE t_transit_user_wallet (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     chain_type VARCHAR(10) NOT NULL,
     wallet_addr VARCHAR(200) NOT NULL,
     total_transit_usdt VARCHAR(200) DEFAULT '0' NOT NULL,
@@ -837,7 +837,7 @@ CREATE TABLE t_transit_user_wallet (
 
 
 CREATE TABLE t_transit_wallet (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     chain_type VARCHAR(10) NOT NULL,
     receive_wallet VARCHAR(200) NOT NULL,
     send_wallet VARCHAR(200) NOT NULL,
@@ -855,7 +855,7 @@ CREATE TABLE t_transit_wallet (
 );
 
 CREATE TABLE t_transit_wallet_black (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     chain_type VARCHAR(10) NOT NULL,
     black_wallet VARCHAR(200) NOT NULL,
     comments VARCHAR(255) DEFAULT NULL,
@@ -865,7 +865,7 @@ CREATE TABLE t_transit_wallet_black (
 
 
 CREATE TABLE t_transit_wallet_coin (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     transit_wallet_id integer NOT NULL,
     in_coin_name VARCHAR(20) NOT NULL,
     out_coin_name VARCHAR(20) NOT NULL,
@@ -885,13 +885,13 @@ CREATE TABLE t_transit_wallet_coin (
 
 
 CREATE TABLE t_transit_wallet_trade_list (
-    rid BIGINT AUTO_INCREMENT NOT NULL,
+    rid BIGINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     tx_hash VARCHAR(100) NOT NULL,
     transferfrom_address VARCHAR(200) NOT NULL,
     transferto_address VARCHAR(200) NOT NULL,
     coin_name VARCHAR(20) NOT NULL,
     amount VARCHAR(100) NOT NULL,
-    "timestamp" VARCHAR(20) NOT NULL,
+    `timestamp` VARCHAR(20) NOT NULL,
     process_status smallint DEFAULT '0' NOT NULL,
     process_time DATETIME(6),
     process_comments VARCHAR(255) DEFAULT NULL,
@@ -958,167 +958,20 @@ CREATE TABLE t_transit_wallet_trade_list (
 
 
 
-ALTER TABLE t_admin_login_log
-    ADD CONSTRAINT t_admin_login_log_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_admin
-    ADD CONSTRAINT t_admin_pkey PRIMARY KEY (id);
-
-ALTER TABLE t_bind_a_send_n_binding
-    ADD CONSTRAINT t_bind_a_send_n_binding_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_bind_a_send_n_config
-    ADD CONSTRAINT t_bind_a_send_n_config_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_bind_a_send_n_grant
-    ADD CONSTRAINT t_bind_a_send_n_grant_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_collection_wallet_list
-    ADD CONSTRAINT t_collection_wallet_list_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_collection_wallet
-    ADD CONSTRAINT t_collection_wallet_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_ai_bishu
-    ADD CONSTRAINT t_energy_ai_bishu_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_ai_trusteeship
-    ADD CONSTRAINT t_energy_ai_trusteeship_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_platform_bot
-    ADD CONSTRAINT t_energy_platform_bot_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_platform_order
-    ADD CONSTRAINT t_energy_platform_order_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_platform_package
-    ADD CONSTRAINT t_energy_platform_package_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_platform
-    ADD CONSTRAINT t_energy_platform_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_quick_order
-    ADD CONSTRAINT t_energy_quick_order_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_special_list
-    ADD CONSTRAINT t_energy_special_list_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_special
-    ADD CONSTRAINT t_energy_special_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_third_part
-    ADD CONSTRAINT t_energy_third_part_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_energy_wallet_trade_list
-    ADD CONSTRAINT t_energy_wallet_trade_list_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_fms_recharge_order
-    ADD CONSTRAINT t_fms_recharge_order_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_fms_wallet_trade_list
-    ADD CONSTRAINT t_fms_wallet_trade_list_pkey PRIMARY KEY (rid);
-
 ALTER TABLE t_model_has_permissions
     ADD CONSTRAINT t_model_has_permissions_pkey PRIMARY KEY (permission_id, model_id, model_type);
 
 ALTER TABLE t_model_has_roles
     ADD CONSTRAINT t_model_has_roles_pkey PRIMARY KEY (role_id, model_id, model_type);
 
-ALTER TABLE t_monitor_bot
-    ADD CONSTRAINT t_monitor_bot_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_monitor_wallet
-    ADD CONSTRAINT t_monitor_wallet_pkey PRIMARY KEY (rid);
-
 ALTER TABLE t_permissions
     ADD CONSTRAINT t_permissions_name_guard_name_key UNIQUE (name, guard_name);
-
-ALTER TABLE t_permissions
-    ADD CONSTRAINT t_permissions_pkey PRIMARY KEY (id);
-
-ALTER TABLE t_premium_platform_order
-    ADD CONSTRAINT t_premium_platform_order_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_premium_platform_package
-    ADD CONSTRAINT t_premium_platform_package_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_premium_platform
-    ADD CONSTRAINT t_premium_platform_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_premium_wallet_trade_list
-    ADD CONSTRAINT t_premium_wallet_trade_list_pkey PRIMARY KEY (rid);
 
 ALTER TABLE t_role_has_permissions
     ADD CONSTRAINT t_role_has_permissions_pkey PRIMARY KEY (permission_id, role_id);
 
 ALTER TABLE t_roles
     ADD CONSTRAINT t_roles_name_guard_name_key UNIQUE (name, guard_name);
-
-ALTER TABLE t_roles
-    ADD CONSTRAINT t_roles_pkey PRIMARY KEY (id);
-
-ALTER TABLE t_shop_goods_bot
-    ADD CONSTRAINT t_shop_goods_bot_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_shop_goods_cdkey
-    ADD CONSTRAINT t_shop_goods_cdkey_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_shop_goods
-    ADD CONSTRAINT t_shop_goods_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_shop_order
-    ADD CONSTRAINT t_shop_order_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_sys_admin_opt_log
-    ADD CONSTRAINT t_sys_admin_opt_log_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_sys_config
-    ADD CONSTRAINT t_sys_config_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_sys_data_dictionary
-    ADD CONSTRAINT t_sys_data_dictionary_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_ad_keyboard
-    ADD CONSTRAINT t_telegram_bot_ad_keyboard_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_ad
-    ADD CONSTRAINT t_telegram_bot_ad_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_command
-    ADD CONSTRAINT t_telegram_bot_command_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_group
-    ADD CONSTRAINT t_telegram_bot_group_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_keyboard
-    ADD CONSTRAINT t_telegram_bot_keyboard_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_keyreply_keyboard
-    ADD CONSTRAINT t_telegram_bot_keyreply_keyboard_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_keyreply
-    ADD CONSTRAINT t_telegram_bot_keyreply_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot
-    ADD CONSTRAINT t_telegram_bot_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_telegram_bot_user
-    ADD CONSTRAINT t_telegram_bot_user_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_transit_user_wallet
-    ADD CONSTRAINT t_transit_user_wallet_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_transit_wallet_black
-    ADD CONSTRAINT t_transit_wallet_black_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_transit_wallet_coin
-    ADD CONSTRAINT t_transit_wallet_coin_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_transit_wallet
-    ADD CONSTRAINT t_transit_wallet_pkey PRIMARY KEY (rid);
-
-ALTER TABLE t_transit_wallet_trade_list
-    ADD CONSTRAINT t_transit_wallet_trade_list_pkey PRIMARY KEY (rid);
 
 CREATE INDEX idx_energy_third_part_1 ON t_energy_third_part (tg_uid);
 
@@ -1136,8 +989,8 @@ CREATE TABLE t_telegram_bot_moderation_config (
     support_verified_minutes integer NOT NULL DEFAULT 1440,
     ad_score_threshold smallint NOT NULL DEFAULT 4,
     ad_keywords text,
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 );
 
 CREATE TABLE t_telegram_bot_group_policy (
@@ -1160,8 +1013,8 @@ CREATE TABLE t_telegram_bot_group_policy (
     ad_verification_timeout_seconds integer NOT NULL DEFAULT 1800,
     rate_limit_count smallint NOT NULL DEFAULT 6,
     rate_limit_window_seconds smallint NOT NULL DEFAULT 10,
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT t_telegram_bot_group_policy_bot_group_unique UNIQUE (bot_rid, tg_groupid)
 );
 
@@ -1171,10 +1024,10 @@ CREATE TABLE t_telegram_group_message_history (
     chat_id bigint NOT NULL,
     message_id bigint NOT NULL,
     user_id bigint,
-    message_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    message_date DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     message_text text,
-    message_json jsonb NOT NULL,
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    message_json JSON NOT NULL,
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT t_telegram_group_message_history_unique UNIQUE (bot_rid, chat_id, message_id)
 );
 
@@ -1189,8 +1042,8 @@ CREATE TABLE t_telegram_moderated_member (
     action VARCHAR(30) NOT NULL,
     restricted_until DATETIME(6),
     status VARCHAR(20) NOT NULL DEFAULT 'active',
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT t_telegram_moderated_member_bot_chat_user_unique UNIQUE (bot_rid, chat_id, user_id)
 );
 
@@ -1210,8 +1063,8 @@ CREATE TABLE t_telegram_verification (
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     expires_at DATETIME(6) NOT NULL,
     verified_at DATETIME(6),
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    update_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 );
 
 CREATE TABLE t_telegram_support_message (
@@ -1223,7 +1076,7 @@ CREATE TABLE t_telegram_support_message (
     support_message_id bigint,
     direction VARCHAR(20) NOT NULL,
     is_ad boolean NOT NULL DEFAULT false,
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 );
 
 CREATE TABLE t_telegram_moderation_log (
@@ -1237,7 +1090,7 @@ CREATE TABLE t_telegram_moderation_log (
     score smallint NOT NULL DEFAULT 0,
     reasons text,
     content_preview VARCHAR(500),
-    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    create_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 );
 
 CREATE INDEX idx_telegram_verification_lookup ON t_telegram_verification (bot_rid, user_id, verification_type, status);

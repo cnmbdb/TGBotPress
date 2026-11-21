@@ -16,6 +16,7 @@ test('MySQL base schema generation preserves all tables and auto-increment keys'
   const mysqlTables = [...mysqlSchema.matchAll(/CREATE TABLE (\w+)/g)].map(match => match[1]).sort()
   assert.deepEqual(mysqlTables, sourceTables)
   assert.equal((mysqlSchema.match(/AUTO_INCREMENT/g) ?? []).length, (source.match(/\bbigserial\b/gi) ?? []).length + (source.match(/SET DEFAULT nextval/g) ?? []).length)
+  assert.doesNotMatch(mysqlSchema, /\bjsonb\b|\bbytea\b|\btimestamptz\b/)
   assert.match(mysqlSchema, /active_opening_master_bot_rid INT GENERATED ALWAYS/)
   assert.match(mysqlSchema, /CREATE UNIQUE INDEX uq_telegram_clone_proxy_opening_pending_user/)
   assert.doesNotMatch(mysqlSchema, /::\w+|nextval\(|CREATE SEQUENCE|\bDO \$\$/)
