@@ -20,7 +20,7 @@ services:
     container_name: redis
     restart: unless-stopped
   platform:
-    image: ${TGBOTPRESS_IMAGE:-ghcr.io/cnmbdb/tgbot-ultra-tanstack:latest}
+    image: ${TGBOTPRESS_IMAGE:-ghcr.io/cnmbdb/tgbotpress:latest}
     container_name: platform
     env_file:
       - .env
