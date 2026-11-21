@@ -108,7 +108,7 @@ async function cloudflareAccessAdmin(request: Request) {
   return admin.rows[0]
 }
 
-export async function identity(request: Request, options: { allowUnlicensed?: boolean } = {}): Promise<Identity> {
+export async function identity(request: Request): Promise<Identity> {
   let user: { id: string; name: string }
   if (cloudflareAccessRequired()) user = await cloudflareAccessAdmin(request)
   else {
@@ -122,15 +122,6 @@ export async function identity(request: Request, options: { allowUnlicensed?: bo
     const currentHost = trustedRequestHostname(request)
     if (cfConfig.domainEnabled && currentHost !== cfConfig.hostname.toLowerCase()) throw new HttpError(421, '请使用指定后台域名访问')
   }
-  const licenseRow = await db.query("SELECT config_val FROM t_sys_config WHERE config_key='license_activation' LIMIT 1")
-  let license: { auth_code?: string } | undefined
-  try {
-    let value = licenseRow.rows[0]?.config_val
-    if (typeof value === 'string') value = JSON.parse(value)
-    if (typeof value === 'string') value = JSON.parse(value)
-    if (value && typeof value === 'object') license = value
-  } catch { /* invalid license configuration denies access */ }
-  if (!license?.auth_code && !options.allowUnlicensed) throw new HttpError(403, '未授权，请先在系统设置中激活授权')
   const roles = await db.query(`SELECT r.name FROM t_roles r JOIN t_model_has_roles m ON m.role_id=r.id WHERE m.model_id=$1 AND m.model_type=$2 AND r.guard_name='web'`, [user.id, modelType])
   const permissions = await db.query(`SELECT DISTINCT p.name,p.route FROM t_permissions p WHERE p.guard_name='web' AND (p.id IN (SELECT permission_id FROM t_model_has_permissions WHERE model_id=$1 AND model_type=$2) OR p.id IN (SELECT rp.permission_id FROM t_role_has_permissions rp JOIN t_model_has_roles mr ON mr.role_id=rp.role_id WHERE mr.model_id=$1 AND mr.model_type=$2))`, [user.id, modelType])
   return { ...user, roles: roles.rows.map(r=>r.name), permissions: permissions.rows.map(p=>p.name), routes: permissions.rows.map(p=>p.route).filter(Boolean) }
@@ -145,24 +136,11 @@ function assertOrigin(request: Request) {
   if (request.headers.get('origin') !== platform || !request.headers.get('content-type')?.startsWith('application/json')) throw new HttpError(403, '请求来源无效')
 }
 export async function me(request: Request) {
-  const accessMode = new URL(request.url).searchParams.get('allowUnlicensed')
-  const allowConfigActivation = accessMode === 'config'
-  const allowDashboard = accessMode === 'dashboard'
-  const user = await identity(request, { allowUnlicensed: allowConfigActivation || allowDashboard })
-  if (allowConfigActivation && !(can(user, '系统设置', 'admin.setting.config.index') && can(user, '配置信息', 'admin.setting.config.index'))) {
-    throw new HttpError(403, '没有访问权限')
-  }
-  if (!allowDashboard) return Response.json(user, { headers })
-  if (!can(user, '仪表盘', 'admin.home')) throw new HttpError(403, '没有访问权限')
-  const licenseRow = await db.query("SELECT config_val FROM t_sys_config WHERE config_key='license_activation' LIMIT 1")
-  let licensed = false
-  try {
-    let value = licenseRow.rows[0]?.config_val
-    if (typeof value === 'string') value = JSON.parse(value)
-    if (typeof value === 'string') value = JSON.parse(value)
-    licensed = !!(value && typeof value === 'object' && 'auth_code' in value && value.auth_code)
-  } catch { /* invalid license configuration remains unlicensed */ }
-  return Response.json({ ...user, licensed }, { headers })
+  const user = await identity(request)
+  const params = new URL(request.url).searchParams
+  if ((params.get('scope') === 'dashboard' || params.get('allowUnlicensed') === 'dashboard') && !can(user, '仪表盘', 'admin.home')) throw new HttpError(403, '没有访问权限')
+  if (params.get('allowUnlicensed') === 'config' && !(can(user, '系统设置', 'admin.setting.config.index') && can(user, '配置信息', 'admin.setting.config.index'))) throw new HttpError(403, '没有访问权限')
+  return Response.json(user, { headers })
 }
 export async function logout(request: Request) {
   assertOrigin(request)

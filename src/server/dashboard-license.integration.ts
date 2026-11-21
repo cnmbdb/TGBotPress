@@ -11,6 +11,7 @@ const setup=new pg.Pool({connectionString:raw,max:4})
 await setup.query('CREATE TABLE t_admin(id bigint PRIMARY KEY,name varchar(30),password varchar(100),status smallint DEFAULT 1)')
 await setup.query('CREATE TABLE t_admin_device_session(rid bigserial PRIMARY KEY,admin_id bigint,session_hash char(64),login_time timestamp,last_seen_at timestamp,expires_at timestamp,revoked_at timestamp)')
 await setup.query('CREATE TABLE t_platform_session(token_hash char(64) PRIMARY KEY,admin_id bigint,device_session_id bigint,expires_at timestamp)')
+await setup.query('CREATE TABLE t_platform_cloudflare_security(rid bigint PRIMARY KEY,config_ciphertext text,updated_at timestamp)')
 await setup.query('CREATE TABLE t_sys_config(rid bigserial PRIMARY KEY,config_key varchar(50),config_val varchar(500))')
 await setup.query("CREATE TABLE t_roles(id bigserial PRIMARY KEY,name varchar(255),guard_name varchar(255) DEFAULT 'web',created_at timestamp,updated_at timestamp)")
 await setup.query("CREATE TABLE t_permissions(id bigserial PRIMARY KEY,name varchar(255),guard_name varchar(255) DEFAULT 'web',created_at timestamp,updated_at timestamp,route varchar(255),pid integer)")
@@ -25,9 +26,21 @@ await setup.query("INSERT INTO t_roles(id,name) VALUES(1,'dashboard'),(2,'config
 await setup.query("INSERT INTO t_permissions(id,name,route,pid) VALUES(1,'仪表盘','admin.home',0),(2,'系统设置','admin.setting.config.index',1),(3,'配置信息','admin.setting.config.index',2)")
 await setup.query("INSERT INTO t_role_has_permissions(role_id,permission_id) VALUES(1,1),(2,2),(2,3)")
 await setup.query("INSERT INTO t_model_has_roles(role_id,model_type,model_id) VALUES(1,'App\\Models\\Admin\\Admin',1),(1,'App\\Models\\Admin\\Admin',2),(2,'App\\Models\\Admin\\Admin',3)")
-await setup.query('INSERT INTO t_sys_config(config_key,config_val) VALUES($1,$2)', ['license_activation', JSON.stringify({auth_code:'fixture'})])
+
 const {me,run}=await import('./api.server')
 async function call(admin:number,query=''){return run(()=>me(new Request('https://dashboard.test/api/me'+query,{headers:{cookie:'tg_platform_session='+tokens.get(admin)}})))}
 try{
- await test('dashboard profile reports licensing while preserving protected legacy behavior',async()=>{let r=await call(1,'?allowUnlicensed=dashboard');let d=await r.json() as Record<string,any>;assert.equal(r.status,200);assert.equal(d.licensed,true);assert.equal(d.name,'licensed');await setup.query("UPDATE t_sys_config SET config_val='{}' WHERE config_key='license_activation'");r=await call(2,'?allowUnlicensed=dashboard');d=await r.json() as Record<string,any>;assert.equal(r.status,200);assert.equal(d.licensed,false);assert.equal((await call(2)).status,403);assert.equal((await call(3,'?allowUnlicensed=dashboard')).status,403);assert.equal((await call(3,'?allowUnlicensed=config')).status,200)})
-}finally{await setup.end()}
+ await test('authenticated users do not need an activation code and retain role-based access',async()=>{
+  for (const id of [1,2,3]) { const response=await call(id); assert.equal(response.status,200); assert.equal((await response.json() as Record<string,unknown>).licensed,undefined) }
+  assert.equal((await call(1,'?scope=dashboard')).status,200)
+  assert.equal((await call(3,'?scope=dashboard')).status,403)
+  assert.equal((await call(3,'?allowUnlicensed=dashboard')).status,403)
+  const {identity,can}=await import('./api.server')
+  const req=new Request('https://dashboard.test/api/me',{headers:{cookie:'tg_platform_session='+tokens.get(3)}})
+  const user=await identity(req)
+  assert.equal(can(user,'仪表盘','admin.home'),false)
+  assert.equal(can(user,'配置信息','admin.setting.config.index'),true)
+  const anonymous=await run(()=>me(new Request('https://dashboard.test/api/me')))
+  assert.equal(anonymous.status,401)
+ })
+}finally{await setup.end();const {db}=await import('./db.server');await db.end()}

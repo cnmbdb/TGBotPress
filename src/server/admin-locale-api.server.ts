@@ -7,7 +7,7 @@ const inputSchema = z.object({ locale: z.enum(['zh-CN','en','ru','ja']) }).stric
 
 export function adminLocaleApi(request: Request) {
   return run(async () => {
-    const user = await identity(request, { allowUnlicensed: true })
+    const user = await identity(request)
     if (request.method === 'GET') {
       const result = await db.query<{locale:string}>('SELECT locale FROM t_platform_admin_locale WHERE admin_id=$1', [user.id])
       return Response.json({ locale: result.rows[0]?.locale ?? 'zh-CN' }, { headers })
