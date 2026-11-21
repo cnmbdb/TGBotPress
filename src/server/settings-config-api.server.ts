@@ -6,7 +6,7 @@ const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" 
 const pageRoute = "admin.setting.config.index"
 const writeRoute = "admin.setting.config.update"
 const allowedLocalHosts = new Set(["job", "tgbot-job", "localhost", "127.0.0.1", "::1", "host.docker.internal"])
-const settingKeys = ["job_url", "tronscan_api_keys", "trongrid_api_keys"] as const
+const settingKeys = ["job_url", "tronscan_api_keys", "trongrid_api_keys", "branding"] as const
 type ConfigKey = typeof settingKeys[number]
 function hasPermission(user: Awaited<ReturnType<typeof identity>>, route: string) {
   return can(user, "系统设置", pageRoute) && can(user, "配置信息", pageRoute) && can(user, "配置信息", route)
@@ -34,7 +34,9 @@ async function setting(key: ConfigKey) { return configValue((await configRows())
 async function loadSettings() {
   const values = await configRows()
   const job = configValue(values.get("job_url")), tronscan = configValue(values.get("tronscan_api_keys")), trongrid = configValue(values.get("trongrid_api_keys"))
+  const branding = configValue(values.get("branding"))
   return {
+    branding: { logoText: String(branding.logoText ?? "TGBotPress"), logoImageUrl: String(branding.logoImageUrl ?? ""), footerText: String(branding.footerText ?? "TGBotPress") },
     jobUrl: String(job.url || process.env.JOB_URL || "http://tgbot-job:9501"),
     tronscanConfigured: !!String(tronscan.keys || "").trim(),
     trongridConfigured: !!String(trongrid.keys || "").trim(),
@@ -54,7 +56,7 @@ async function saveValue(client: import("pg").PoolClient, key: ConfigKey, value:
   if (found.rowCount) {
     await client.query("UPDATE t_sys_config SET config_val=$2,update_by=$3,update_time=now() WHERE rid=$1", [found.rows[0].rid, encoded, adminId])
   } else {
-    const comments: Record<ConfigKey, string> = { job_url: "任务域名url", tronscan_api_keys: "TRONSCAN API Keys，逗号分隔", trongrid_api_keys: "TRONGRID API Keys，逗号分隔" }
+    const comments: Record<ConfigKey, string> = { job_url: "任务域名url", tronscan_api_keys: "TRONSCAN API Keys，逗号分隔", trongrid_api_keys: "TRONGRID API Keys，逗号分隔", branding: "后台品牌显示" }
     await client.query("INSERT INTO t_sys_config(config_key,config_val,comments,create_by,create_time,update_by,update_time) VALUES($1,$2,$3,$4,now(),$4,now())", [key, encoded, comments[key], adminId])
   }
 }
@@ -77,6 +79,12 @@ export function settingsConfigApi(request: Request) {
   return run(async () => {
     const user = await identity(request)
     const url = new URL(request.url), action = url.searchParams.get("action") || "config"
+    if (request.method === "GET" && action === "branding-image") {
+      const relative=url.searchParams.get("path") || "";
+      if (!/^news\/\d{8}\/[0-9a-f]+\.(png|jpg|gif|webp)$/.test(relative)) return new Response("Not found",{status:404});
+      const { readFile }=await import("node:fs/promises"); const path=await import("node:path");
+      try { const root=path.resolve(process.env.MEDIA_STORAGE_ROOT||"/legacy-storage/app/public"); const data=await readFile(path.join(root,relative)); const ext=relative.split(".").pop(); return new Response(data,{headers:{"Content-Type":ext==="jpg"?"image/jpeg":`image/${ext}`,"Cache-Control":"private, max-age=3600","X-Content-Type-Options":"nosniff"}}) } catch { return new Response("Not found",{status:404}) }
+    }
     if (!hasPermission(user, pageRoute)) return Response.json({ message: "没有访问权限" }, { status: 403, headers })
     if (request.method === "GET") {
       if (action === "job-status") return Response.json(await requestJob("api/config/check_status"), { headers })
@@ -93,7 +101,9 @@ export function settingsConfigApi(request: Request) {
         const form = await boundedFormData(request), file = form.get("file") || form.get("upfile")
         if (!(file instanceof File)) return Response.json({ code: 400, msg: "请选择图片", message: "请选择图片", data: "" }, { status: 400, headers })
         const saved = await saveMessageImage(file)
-        return Response.json({ code: 200, msg: "success", data: { url: saved.url } }, { headers })
+        const relative = new URL(saved.url).pathname.match(/^\/storage\/(news\/\d{8}\/[0-9a-f]+\.(?:png|jpg|gif|webp))$/)?.[1]
+        const imageUrl = relative && !process.env.R2_MEDIA_GATEWAY_URL ? `/api/settings-config?action=branding-image&path=${encodeURIComponent(relative)}` : saved.url
+        return Response.json({ code: 200, msg: "success", data: { url: imageUrl } }, { headers })
       } catch (error) {
         const status = typeof error === "object" && error && "status" in error ? Number(error.status) : 400
         return Response.json({ code: status, msg: error instanceof Error ? error.message : "图片上传失败", message: error instanceof Error ? error.message : "图片上传失败", data: "" }, { status, headers })
@@ -101,13 +111,14 @@ export function settingsConfigApi(request: Request) {
     }
     const body = await request.json() as Record<string, unknown>
     if (body.action === "save") {
-      const data = z.object({ action: z.literal("save"), jobUrl: z.string().trim().min(1).max(255), tronscanApiKeys: z.string().trim().max(400), trongridApiKeys: z.string().trim().max(400) }).strict().parse(body)
+      const data = z.object({ action: z.literal("save"), jobUrl: z.string().trim().min(1).max(255), tronscanApiKeys: z.string().trim().max(400), trongridApiKeys: z.string().trim().max(400), branding: z.object({logoText:z.string().max(100),logoImageUrl:z.string().max(500),footerText:z.string().max(200)}).strict().optional() }).strict().parse(body)
       let jobUrl: string
       try { jobUrl = safeJobUrl(data.jobUrl) } catch (error) { return Response.json({ message: error instanceof Error ? error.message : "Job 地址无效" }, { status: 400, headers }) }
       const client = await db.connect()
       try {
         await client.query("BEGIN")
         await saveValue(client, "job_url", { url: jobUrl }, user.id)
+        if (data.branding) await saveValue(client, "branding", data.branding, user.id)
         if (data.tronscanApiKeys) await saveValue(client, "tronscan_api_keys", { keys: data.tronscanApiKeys }, user.id)
         if (data.trongridApiKeys) await saveValue(client, "trongrid_api_keys", { keys: data.trongridApiKeys }, user.id)
         await client.query("INSERT INTO t_platform_audit_log(admin_id,action,resource_id) VALUES($1,$2,NULL)", [user.id, "system.config.update"])
