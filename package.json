@@ -9,6 +9,7 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx scripts/migrate.ts",
+    "db:generate:mysql": "node scripts/generate-mysql-legacy-schema.mjs",
     "test": "tsx --test src/server/*.test.ts && node --test scripts/*.test.mjs",
     "start": "node .output/server/index.mjs",
     "test:integration": "tsx --test src/server/*.integration.ts",
