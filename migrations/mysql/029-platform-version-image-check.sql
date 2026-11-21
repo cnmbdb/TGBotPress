@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS t_platform_version_image_check (
   image_key text PRIMARY KEY CHECK (image_key='platform'),
   image_name text NOT NULL,
-  status text NOT NULL DEFAULT ('pending') CHECK (status IN ('pending','checking','ready','failed')),
+  status varchar(32) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','checking','ready','failed')),
   digest text,
   build_commit text,
   created_at DATETIME(6),

@@ -5,6 +5,9 @@ export type MysqlConfig = { host: string; port: number; database: string; user: 
 
 /** Convert PostgreSQL positional placeholders while preserving quoted strings and comments. */
 export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: string; values: unknown[] } {
+  const arrayParameters = new Set<number>()
+  sql = sql.replace(/([\w.`]+)\s*=\s*ANY\(\$(\d+)::(?:integer|bigint|text|varchar)\[\]\)/gi, (_match, column, position) => { arrayParameters.add(Number(position) - 1); return `${column} IN ($${position})` })
+  sql = sql.replace(/enabled_bot_ids\s*=\s*'\{\}'/gi, 'enabled_bot_ids=JSON_ARRAY()')
   let output = '', mapped: unknown[] = [], index = 0, mode: 'normal'|'single'|'double'|'backtick'|'line'|'block' = 'normal'
   for (let i = 0; i < sql.length; i++) {
     const c = sql[i], next = sql[i + 1]
@@ -30,7 +33,7 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: s
       while (/[0-9]/.test(sql[j] || '')) j++
       const position = Number(sql.slice(i + 1, j)) - 1
       if (position >= values.length) throw new Error(`mysql_parameter_missing:${position + 1}`)
-      output += '?'; mapped.push(values[position]); i = j - 1; index++; continue
+      output += '?'; mapped.push(Array.isArray(values[position]) && !arrayParameters.has(position) ? JSON.stringify(values[position]) : values[position]); i = j - 1; index++; continue
     }
     output += c
   }

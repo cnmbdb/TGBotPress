@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS t_platform_plugin_install_attempt (
-  plugin_id text PRIMARY KEY,
+  plugin_id varchar(64) PRIMARY KEY,
   package_name text NOT NULL,
   version text NOT NULL,
   source text NOT NULL CHECK (source IN ('builtin', 'github-packages')),
   integrity_sha512 text,
   install_path text,
-  status text NOT NULL CHECK (status IN ('staged', 'installed', 'failed')),
+  status varchar(32) NOT NULL CHECK (status IN ('staged', 'installed', 'failed')),
   last_error text,
   updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 );

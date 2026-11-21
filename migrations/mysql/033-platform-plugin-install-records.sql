@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS t_platform_plugin_install (
-  plugin_id text PRIMARY KEY,
+  plugin_id varchar(64) PRIMARY KEY,
   package_name text NOT NULL,
   version text NOT NULL,
   source text NOT NULL CHECK (source IN ('builtin', 'github-packages')),
   integrity_sha512 text,
   install_path text,
-  status text NOT NULL CHECK (status IN ('installed', 'staged', 'failed', 'removed')),
+  status varchar(32) NOT NULL CHECK (status IN ('installed', 'staged', 'failed', 'removed')),
   last_error text,
   installed_at DATETIME(6),
   updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
@@ -24,7 +24,7 @@ VALUES
 ;
 CREATE TABLE IF NOT EXISTS t_platform_plugin_install_history (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  plugin_id text NOT NULL,
+  plugin_id varchar(64) NOT NULL,
   package_name text NOT NULL,
   version text NOT NULL,
   source text NOT NULL,

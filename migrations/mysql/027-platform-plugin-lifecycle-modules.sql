@@ -1,8 +1,8 @@
 ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN disabled_at DATETIME(6);
 ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN enabled_at DATETIME(6);
 CREATE TABLE IF NOT EXISTS t_platform_plugin_execution (
-  plugin_id text NOT NULL,
-  task_name text NOT NULL,
+  plugin_id varchar(64) NOT NULL,
+  task_name varchar(100) NOT NULL,
   owner text NOT NULL,
   lease_until DATETIME(6) NOT NULL,
   started_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
