@@ -1,0 +1,73 @@
+name: tgbotpress
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: tgbotpress
+      POSTGRES_USER: tgbotpress
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tgbotpress -d tgbotpress"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+  platform:
+    image: node:22-bookworm-slim
+    container_name: platform
+    working_dir: /app
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: tgbotpress
+      DB_USERNAME: tgbotpress
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:?Set ADMIN_INITIAL_PASSWORD in .env}
+      APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+      PLATFORM_ORIGIN: http://127.0.0.1:8083
+      REDIS_HOST: redis
+      WEBHOOK_PROXY_PORT: 8084
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"
+      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: localhost,127.0.0.1
+      PLATFORM_TELEGRAM_ACTIONS: "false"
+      PLATFORM_TELEGRAM_UPDATE_DISPATCH_READY: "false"
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        lock_hash="$$(sha256sum package-lock.json | cut -d ' ' -f 1)"
+        installed_hash="$$(cat node_modules/.lockfile-hash 2>/dev/null || true)"
+        if [ ! -x node_modules/.bin/vite ] || [ "$$installed_hash" != "$$lock_hash" ]; then
+          npm ci
+          printf '%s\n' "$$lock_hash" > node_modules/.lockfile-hash
+        fi
+        node scripts/migrate-production.mjs
+        exec npm run dev:all
+    ports:
+      - "127.0.0.1:8083:8083"
+    volumes:
+      - .:/app
+      - platform_node_modules:/app/node_modules
+      - media:/legacy-storage
+    init: true
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  media:
+  platform_node_modules:
