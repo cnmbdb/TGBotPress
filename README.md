@@ -1,8 +1,8 @@
 <div align="center">
 
-# TGBotPress
-
 ![TGBotPress 展示动画](docs/images/tgbotpress-demo.gif)
+
+# TGBotPress
 
 **面向 Telegram Bot 的模块化管理基座与插件生态**
 
