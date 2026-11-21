@@ -2,6 +2,14 @@ import { translateText, type Locale } from "./i18n"
 
 type ExtraLocale = Exclude<Locale, "zh-CN">
 const messages: Record<string, Record<ExtraLocale, string>> = {
+  '上传失败':{en:'Upload failed',ru:'Ошибка загрузки',ja:'アップロードに失敗しました'},
+  '登录回调已过期，请重新登录。':{en:'The sign-in callback expired. Please sign in again.',ru:'Срок действия обратного вызова истёк. Войдите снова.',ja:'ログインコールバックの期限が切れました。再度ログインしてください。'},
+  '浏览器阻止了登录窗口，请允许弹出窗口后重试。':{en:'Your browser blocked the sign-in window. Allow pop-ups and try again.',ru:'Браузер заблокировал окно входа. Разрешите всплывающие окна и повторите попытку.',ja:'ログインウィンドウがブロックされました。ポップアップを許可して再試行してください。'},
+  '无法打开登录窗口，请重试。':{en:'Could not open the sign-in window. Try again.',ru:'Не удалось открыть окно входа. Повторите попытку.',ja:'ログインウィンドウを開けません。再試行してください。'},
+  '退出失败，请稍后重试':{en:'Sign-out failed. Try again later.',ru:'Не удалось выйти. Повторите попытку позже.',ja:'ログアウトに失敗しました。後でもう一度お試しください。'},
+  '账号关联失败，请稍后重试':{en:'Account linking failed. Try again later.',ru:'Не удалось связать аккаунт. Повторите попытку позже.',ja:'アカウント連携に失敗しました。後でもう一度お試しください。'},
+  '账号关联失败，请检查插件平台服务后重试。':{en:'Account linking failed. Check the plugin platform and try again.',ru:'Не удалось связать аккаунт. Проверьте платформу плагинов и повторите попытку.',ja:'アカウント連携に失敗しました。プラグインプラットフォームを確認して再試行してください。'},
+  '图片不能超过 200 KB':{en:'Image must be 200 KB or smaller',ru:'Размер изображения не должен превышать 200 КБ',ja:'画像は 200 KB 以下にしてください'},
   "登录中…": { en: "Signing in…", ru: "Выполняется вход…", ja: "ログイン中…" },
   "开发环境登录": { en: "Development login", ru: "Вход в среду разработки", ja: "開発環境ログイン" },
   "通过 Access 打开后台": { en: "Open admin with Access", ru: "Открыть панель через Access", ja: "Access で管理画面を開く" },

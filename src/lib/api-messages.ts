@@ -1,6 +1,17 @@
 import { currentLocale, translateMessage, type Locale } from "./i18n"
 
 const apiMessages: Record<string, Record<Locale, string>> = {
+  '后台地址未配置': {'zh-CN':'后台地址未配置','en':'Admin origin is not configured','ru':'Адрес панели не настроен','ja':'管理画面のアドレスが設定されていません'},
+  '请求过大': {'zh-CN':'请求过大','en':'Request is too large','ru':'Слишком большой запрос','ja':'リクエストが大きすぎます'},
+  '登录凭证无效': {'zh-CN':'登录凭证无效','en':'Login credentials are invalid','ru':'Недействительные учётные данные','ja':'ログイン情報が無効です'},
+  '插件平台暂不可用': {'zh-CN':'插件平台暂不可用','en':'Plugin platform is unavailable','ru':'Платформа плагинов недоступна','ja':'プラグインプラットフォームを利用できません'},
+  '插件平台身份验证失败': {'zh-CN':'插件平台身份验证失败','en':'Plugin platform authentication failed','ru':'Ошибка аутентификации на платформе плагинов','ja':'プラグインプラットフォームの認証に失敗しました'},
+  '插件平台响应无效': {'zh-CN':'插件平台响应无效','en':'Invalid response from the plugin platform','ru':'Недействительный ответ платформы плагинов','ja':'プラグインプラットフォームの応答が無効です'},
+  'ETS 插件目录暂不可用': {'zh-CN':'ETS 插件目录暂不可用','en':'The ETS plugin catalog is unavailable','ru':'Каталог плагинов ETS недоступен','ja':'ETS プラグインカタログを利用できません'},
+  '请先登录 ETS 账号后上架': {'zh-CN':'请先登录 ETS 账号后上架','en':'Sign in to your ETS account before listing a plugin','ru':'Войдите в аккаунт ETS перед публикацией плагина','ja':'掲載前に ETS アカウントへログインしてください'},
+  'ETS 上架服务暂不可用': {'zh-CN':'ETS 上架服务暂不可用','en':'The ETS listing service is unavailable','ru':'Сервис публикации ETS недоступен','ja':'ETS 掲載サービスを利用できません'},
+  'ETS 登录已过期，请重新登录': {'zh-CN':'ETS 登录已过期，请重新登录','en':'Your ETS session expired. Sign in again.','ru':'Сеанс ETS истёк. Войдите снова.','ja':'ETS のログイン期限が切れました。再度ログインしてください'},
+  '插件远程安装参数无效': {'zh-CN':'插件远程安装参数无效','en':'Remote plugin installation parameters are invalid','ru':'Недопустимые параметры удалённой установки плагина','ja':'リモートプラグインのインストール設定が無効です'},
   "后台登录已切换到 Cloudflare Access": { "zh-CN": "后台登录已切换到 Cloudflare Access", en: "Admin login now uses Cloudflare Access", ru: "Вход в панель управления теперь выполняется через Cloudflare Access", ja: "管理画面のログインは Cloudflare Access に切り替わりました" },
   "基础设置已保存": { "zh-CN": "基础设置已保存", en: "Basic settings saved", ru: "Основные настройки сохранены", ja: "基本設定を保存しました" },
   "商户设置已保存": { "zh-CN": "商户设置已保存", en: "Merchant settings saved", ru: "Настройки продавца сохранены", ja: "加盟店設定を保存しました" },
