@@ -22,6 +22,7 @@
 ## 目录
 
 - [项目介绍](#项目介绍)
+- [界面预览](#界面预览)
 - [功能模块](#功能模块)
 - [技术栈](#技术栈)
 - [开始使用](#开始使用)
@@ -49,6 +50,27 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
 - 🛠️ **开发者接口**：提供插件 SDK、manifest 类型和现有模块示例。
 - 🛍️ **插件市场入口**：支持向 ETS 的 TGBotPress 分类提交插件展示信息。
 - 🐳 **容器化交付**：使用 GitHub Actions 构建镜像并推送至 GHCR。
+
+## 界面预览
+
+### 管理员登录
+
+![TGBotPress 管理员登录页面](docs/images/screenshots/login.png)
+
+### 管理后台
+
+在仪表盘查看内置命令，通过侧边栏进入机器人和各业务模块。
+
+![TGBotPress 管理后台仪表盘](docs/images/screenshots/dashboard.png)
+
+### 插件管理
+
+查看内置模块及其状态，并从插件管理页面进入插件市场和开发入口。
+
+![TGBotPress 插件管理页面](docs/images/screenshots/plugins.png)
+
+> [!NOTE]
+> 截图展示当前界面；插件远程安装和第三方隔离的状态请以实际版本及[插件开发文档](docs/plugin-development.md)为准。
 
 ## 功能模块
 
