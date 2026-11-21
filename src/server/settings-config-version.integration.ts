@@ -20,7 +20,7 @@ await writeFile(fakeDocker,'#!/bin/sh\nprintf "%s\\n" "$*" >> "$VERSION_TEST_DOC
 await chmod(fakeDocker,0o755)
 await writeFile(join(runtimeDir,'compose.yml'),'services: {}\n')
 process.env.VERSION_TEST_DOCKER_LOG=dockerLog;process.env.PATH=`${runtimeDir}:${process.env.PATH}`
-process.env.VERSION_MIN_FREE_DISK_GB='0.1';process.env.VERSION_BASE_PATH=runtimeDir;process.env.VERSION_COMPOSE_PROJECT_DIR=runtimeDir;process.env.VERSION_COMPOSE_FILES=join(runtimeDir,'compose.yml');process.env.VERSION_GIT_DIR=join(runtimeDir,'.git-metadata');process.env.VERSION_GITHUB_REPOSITORY='cnmbdb/tgbot-Ultra-v1-deve';process.env.VERSION_GITHUB_BRANCH='TanStack';process.env.VERSION_PLATFORM_IMAGE='ghcr.io/cnmbdb/tgbot-ultra-tanstack:latest';process.env.VERSION_IMAGE_UPDATE_DRIVER='docker';process.env.APP_BUILD_COMMIT='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';process.env.APP_BUILD_DATE='2026-10-29T00:00:00Z'
+process.env.VERSION_MIN_FREE_DISK_GB='0.1';process.env.VERSION_BASE_PATH=runtimeDir;process.env.VERSION_COMPOSE_PROJECT_DIR=runtimeDir;process.env.VERSION_COMPOSE_FILES=join(runtimeDir,'compose.yml');process.env.VERSION_GIT_DIR=join(runtimeDir,'.git-metadata');process.env.VERSION_GITHUB_REPOSITORY='cnmbdb/TGBotPress';process.env.VERSION_GITHUB_BRANCH='main';process.env.VERSION_PLATFORM_IMAGE='ghcr.io/cnmbdb/tgbotpress:latest';process.env.VERSION_IMAGE_UPDATE_DRIVER='docker';process.env.APP_BUILD_COMMIT='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';process.env.APP_BUILD_DATE='2026-10-29T00:00:00Z'
 let manifestChecks=0
 const originalFetch=globalThis.fetch
 globalThis.fetch=async(input,init)=>{
@@ -87,7 +87,7 @@ try{
   assert.equal(read.response.status,200)
   assert.equal(read.data.repository.current_sha,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
   assert.equal(read.data.images.admin.latest_build_sha,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-  assert.equal(read.data.images.admin.name,'ghcr.io/cnmbdb/tgbot-ultra-tanstack:latest')
+  assert.equal(read.data.images.admin.name,'ghcr.io/cnmbdb/tgbotpress:latest')
   assert.equal(read.data.images.admin.service,'platform')
   assert.ok(read.data.images.admin.checked_at)
   assert.equal(read.data.images.job,undefined)

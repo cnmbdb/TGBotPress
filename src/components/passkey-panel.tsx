@@ -17,7 +17,7 @@ type Credential = { rid:string; name:string; rp_id:string; created_at:string; la
 type PasskeyData = { settings:Settings; credentials:Credential[]; canManage:boolean }
 type RegisterFlow = { flow_token:string; options:PublicKeyCredentialCreationOptionsJSON; name:string }
 type Action = { type:'save' }|{ type:'register' }|{ type:'revoke'; rid:string }
-const initialSettings:Settings={enabled:false,rp_name:'TG Ultra',rp_id:'localhost',origins:[],user_verification:'required',attachment:'',allow_insecure_origin:false}
+const initialSettings:Settings={enabled:false,rp_name:'TGBotPress',rp_id:'localhost',origins:[],user_verification:'required',attachment:'',allow_insecure_origin:false}
 const jsonHeaders={ 'Content-Type':'application/json' }
 export function PasskeyPanel({ canManage }: { canManage:boolean }) {
   useLocale()

@@ -13,7 +13,7 @@ const responseHeaders = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-re
 const settingsSchema = z.object({ enabled: z.boolean(), rp_name: z.string().trim().min(1).max(80), rp_id: z.string().trim().min(1).max(253), origins: z.array(z.string().trim().min(1).max(500)).min(1).max(10), user_verification: z.enum(['required','preferred']), attachment: z.enum(['','platform','cross-platform']).default(''), allow_insecure_origin: z.boolean() }).strict()
 const baseSettings = () => {
   const url = new URL(process.env.PLATFORM_ORIGIN || 'http://localhost')
-  return { enabled: false, rp_name: 'TG Ultra', rp_id: url.hostname, origins: [url.origin], user_verification: 'required' as const, attachment: '' as const, allow_insecure_origin: false }
+  return { enabled: false, rp_name: 'TGBotPress', rp_id: url.hostname, origins: [url.origin], user_verification: 'required' as const, attachment: '' as const, allow_insecure_origin: false }
 }
 type PasskeySettings = ReturnType<typeof baseSettings>
 class PasskeyError extends Error { constructor(public status: number, message: string) { super(message) } }

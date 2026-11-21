@@ -17,7 +17,7 @@ function env(name: string, fallback = "") {
   return (process.env[name] || fallback).trim()
 }
 function safeRepository(value: string) {
-  return /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(value) ? value : "cnmbdb/tgbot-Ultra-v1"
+  return /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(value) ? value : "cnmbdb/TGBotPress"
 }
 function safeBranch(value: string) {
   return /^[a-zA-Z0-9._/-]+$/.test(value) ? value : "main"
@@ -81,12 +81,12 @@ async function autoUpdateStatus() {
 }
 async function setAutoUpdateEnabled(enabled: boolean) {
   const updated = await db.query("UPDATE t_sys_config SET config_val=$2 WHERE config_key=$1", [AUTO_UPDATE_CONFIG_KEY, enabled ? "true" : "false"])
-  if (!updated.rowCount) await db.query("INSERT INTO t_sys_config(config_key,config_val,comments,create_time,update_time) VALUES($1,$2,$3,now(),now())", [AUTO_UPDATE_CONFIG_KEY, enabled ? "true" : "false", "TanStack 自动更新策略"])
+  if (!updated.rowCount) await db.query("INSERT INTO t_sys_config(config_key,config_val,comments,create_time,update_time) VALUES($1,$2,$3,now(),now())", [AUTO_UPDATE_CONFIG_KEY, enabled ? "true" : "false", "TGBotPress 自动更新策略"])
 }
 
 function imageConfig() {
   return {
-    admin: { label: "更新版本", name: env("VERSION_PLATFORM_IMAGE", "ghcr.io/cnmbdb/tgbot-ultra-tanstack:latest"), service: "platform" },
+    admin: { label: "更新版本", name: env("VERSION_PLATFORM_IMAGE", "ghcr.io/cnmbdb/tgbotpress:latest"), service: "platform" },
   } as const
 }
 function railwayDriver() {
@@ -111,7 +111,7 @@ async function runCommand(command: string, args: string[], cwd: string, timeout 
   try {
     const { stdout, stderr } = await execFile(command, args, {
       cwd, timeout, maxBuffer: 1024 * 1024, windowsHide: true,
-      env: { ...process.env, COMPOSE_PROJECT_NAME: env("COMPOSE_PROJECT_NAME", "tgbot-ultra-v1") },
+      env: { ...process.env, COMPOSE_PROJECT_NAME: env("COMPOSE_PROJECT_NAME", "tgbotpress") },
     })
     return { exit_code: 0, output: [stdout, stderr].filter(Boolean).join("\n").trim() }
   } catch (error: any) {
@@ -122,7 +122,7 @@ async function runCommand(command: string, args: string[], cwd: string, timeout 
 async function githubHeaders() {
   const result: Record<string, string> = {
     Accept: "application/vnd.github+json",
-    "User-Agent": "TG-Ultra-Version-Status",
+    "User-Agent": "TGBotPress-Version-Status",
     "X-GitHub-Api-Version": "2022-11-28",
   }
   const token = env("VERSION_GITHUB_TOKEN")
@@ -381,8 +381,8 @@ async function updateCheck(kind: "repository" | "image", details: Json, disk: Js
   return { ok: true, disk_ok: true, source_ok: true, message: "检查通过" }
 }
 async function getStatus(forceImageCheck=false) {
-  const repositoryName = safeRepository(env("VERSION_GITHUB_REPOSITORY", "cnmbdb/tgbot-Ultra-v1-deve"))
-  const branch = safeBranch(env("VERSION_GITHUB_BRANCH", "TanStack"))
+  const repositoryName = safeRepository(env("VERSION_GITHUB_REPOSITORY", "cnmbdb/TGBotPress"))
+  const branch = safeBranch(env("VERSION_GITHUB_BRANCH", "main"))
   const basePath = env("VERSION_BASE_PATH", "/app")
   const gitDir = env("VERSION_GIT_DIR", "/app/.git-metadata")
   const driver = railwayDriver()
@@ -454,7 +454,7 @@ async function performUpdate(target: Target) {
   if (target === "repository") {
     const basePath = env("VERSION_BASE_PATH", "/app")
     const gitDir = env("VERSION_GIT_DIR", "/app/.git-metadata")
-    const branch = safeBranch(env("VERSION_GITHUB_BRANCH", "TanStack"))
+    const branch = safeBranch(env("VERSION_GITHUB_BRANCH", "main"))
     const result = await runCommand("git", [`--git-dir=${gitDir}`, `--work-tree=${basePath}`, "pull", "--ff-only", "origin", branch], basePath)
     return { ok: result.exit_code === 0, message: result.exit_code === 0 ? "源码更新已完成" : (result.output || "源码更新失败"), checks: targetChecks }
   }

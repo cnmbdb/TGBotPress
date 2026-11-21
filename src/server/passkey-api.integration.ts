@@ -65,7 +65,7 @@ try {
   assert.equal(initial.response.status,200)
   assert.equal(initial.data.settings.enabled,false)
   assert.equal((await call(passkeyManagementApi,2)).data.canManage,false)
-  const settings={enabled:true,rp_name:'TG Ultra',rp_id:'passkey.test',origins:['https://passkey.test'],user_verification:'required',attachment:'',allow_insecure_origin:false}
+  const settings={enabled:true,rp_name:'TGBotPress',rp_id:'passkey.test',origins:['https://passkey.test'],user_verification:'required',attachment:'',allow_insecure_origin:false}
   assert.equal((await call(passkeyManagementApi,2,{action:'save-settings',password:'AdminPass!234',settings})).response.status,403)
   assert.equal((await call(passkeyManagementApi,1,{action:'save-settings',password:'bad',settings})).response.status,422)
   assert.equal((await setup.query('SELECT attempts FROM t_platform_passkey_reauth_attempt WHERE admin_id=1')).rows[0].attempts,1)

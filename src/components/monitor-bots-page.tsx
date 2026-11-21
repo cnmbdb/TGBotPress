@@ -46,7 +46,7 @@ export function MonitorBotsPage() {
   const prices = (row: Row) => [['5 个', row.price_usdt_5], ['10 个', row.price_usdt_10], ['20 个', row.price_usdt_20], ['50 个', row.price_usdt_50], ['100 个', row.price_usdt_100], ['200 个', row.price_usdt_200]] as const
   const priceText = (row: Row) => prices(row).map(([label, value]) => label + '：' + value + ' USDT').join(' · ')
   if (me.isPending) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="size-4 animate-spin text-muted-foreground" aria-label="正在加载" /></div>
-  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><div className="w-full max-w-sm space-y-4 rounded-xl bg-card p-5 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Bot className="size-4" />TG Ultra</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=monitorBots">管理员登录</a></Button></div></main>
+  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><div className="w-full max-w-sm space-y-4 rounded-xl bg-card p-5 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Bot className="size-4" />TGBotPress</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=monitorBots">管理员登录</a></Button></div></main>
   const error = query.error || options.error || mutation.error
   return <AdminShell user={me.data} title="机器人监控" activeRoute="admin.monitor.bot.index" onRefresh={() => query.refetch()} onLogout={() => logout.mutate()}>
     <main className="space-y-3 p-3 sm:p-4">

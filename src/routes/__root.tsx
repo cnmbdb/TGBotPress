@@ -5,7 +5,7 @@ import { useState } from 'react'
 import css from '../styles.css?url'
 import { LocaleProvider } from '@/components/locale-provider'
 export const Route = createRootRoute({
-  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'TG Ultra' }], links: [{ rel: 'stylesheet', href: css }] }),
+  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'TGBotPress' }], links: [{ rel: 'stylesheet', href: css }] }),
   component: Root,
 })
 function Root() {

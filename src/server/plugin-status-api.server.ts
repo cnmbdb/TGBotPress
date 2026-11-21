@@ -38,7 +38,7 @@ export function pluginStatusApi(request: Request) {
           const lifecycleState = await db.query<{ state: string }>('SELECT state FROM t_platform_plugin_lifecycle WHERE plugin_id=$1', [plugin.id])
           if (lifecycleState.rows[0]?.state !== 'uninstalled') return Response.json({ message: 'plugin_not_uninstalled' }, { status: 409, headers })
           try {
-            const result = await installRemotePlugin({ pool: db, pluginId: plugin.id, packageName: body.packageName, version: body.version, integritySha512: body.integritySha512, token: process.env.GITHUB_PACKAGES_TOKEN ?? '', root: process.env.PLATFORM_PLUGIN_DIR ?? '/var/lib/tg-ultra/plugins', lifecycleInstall: async () => { await transition('install') } })
+            const result = await installRemotePlugin({ pool: db, pluginId: plugin.id, packageName: body.packageName, version: body.version, integritySha512: body.integritySha512, token: process.env.GITHUB_PACKAGES_TOKEN ?? '', root: process.env.PLATFORM_PLUGIN_DIR ?? '/var/lib/tgbotpress/plugins', lifecycleInstall: async () => { await transition('install') } })
             state = result.status === 'installed' ? 'active' : result.status
           } catch (error) {
             await recordPluginInstallFailure(db, plugin.id, body.packageName, body.version, error).catch(() => undefined)

@@ -50,7 +50,7 @@ function ShopCdkeys() {
     onSuccess: result => setRevealed(result),
   })
   if (me.isPending) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="size-4 animate-spin text-muted-foreground" aria-label="正在加载" /></div>
-  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Package className="size-4" />TG Ultra</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=shopCdkeys"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
+  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Package className="size-4" />TGBotPress</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=shopCdkeys"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
   const total = query.data?.total || 0, pages = Math.max(1, Math.ceil(total / pageSize))
   const openEditor = (row?: Row) => { setForm(row ? { goodsRid: String(row.goods_rid), cdkeyNo: row.cdkey_no, cdkeyPwd: '', trxPrice: row.cdkey_trx_price, usdtPrice: row.cdkey_usdt_price, seq: String(row.seq_sn), status: String(row.status) } : { ...emptyForm, goodsRid: options.data?.goods[0] ? String(options.data.goods[0].rid) : '' }); setEditor(row || 'create'); saveMutation.reset() }
   const closeEditor = () => { setEditor(null); saveMutation.reset() }

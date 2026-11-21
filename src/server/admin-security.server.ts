@@ -145,9 +145,9 @@ async function sendEmailCode(user: Identity, input: unknown) {
   })
   try {
     await transport.sendMail({
-      from: { name: process.env.MAIL_FROM_NAME || "TG Ultra", address: process.env.MAIL_FROM_ADDRESS || "" },
-      to: body.email, subject: "TG Ultra 管理员邮箱验证",
-      text: `您的 TG Ultra 管理后台邮箱验证码为 ${code}，10 分钟内有效。`,
+      from: { name: process.env.MAIL_FROM_NAME || "TGBotPress", address: process.env.MAIL_FROM_ADDRESS || "" },
+      to: body.email, subject: "TGBotPress 管理员邮箱验证",
+      text: `您的 TGBotPress 管理后台邮箱验证码为 ${code}，10 分钟内有效。`,
     })
   } catch { throw new SecurityRequestError(502, "验证码邮件发送失败，请检查邮件配置") }
   finally { transport.close() }
@@ -274,7 +274,7 @@ async function pageData(request: Request, user: Identity) {
     credentials = keys.rows
   }
   let passkey = {
-    enabled: false, rp_name: "TG Ultra", rp_id: new URL(process.env.PLATFORM_ORIGIN || "http://localhost").hostname,
+    enabled: false, rp_name: "TGBotPress", rp_id: new URL(process.env.PLATFORM_ORIGIN || "http://localhost").hostname,
     origins: [new URL(process.env.PLATFORM_ORIGIN || "http://localhost").origin],
     user_verification: "required", attachment: "", allow_insecure_origin: false,
   } as Record<string, any>

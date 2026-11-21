@@ -42,7 +42,7 @@ function SideNavigation({ user, activeRoute, onNavigate }: { user: AdminUser; ac
     return () => document.removeEventListener('keydown', shortcut)
   }, [])
   return <div className="flex h-full min-h-0 flex-col bg-card">
-    <MenuLink route='admin.home' className="flex h-14 shrink-0 items-center justify-center px-5 text-base font-semibold tracking-tight" onClick={onNavigate}>TG Ultra</MenuLink>
+    <MenuLink route='admin.home' className="flex h-14 shrink-0 items-center justify-center px-5 text-base font-semibold tracking-tight" onClick={onNavigate}>TGBotPress</MenuLink>
     <div className="relative mx-3 mb-3"><Search className="pointer-events-none absolute top-2.5 left-3 size-3.5 text-muted-foreground" /><Input ref={input} aria-label={t("搜索后台菜单")} placeholder={t("搜索菜单…  ⌘K")} value={search} onChange={event => setSearch(event.target.value)} className="h-11 md:h-9 pl-9 text-xs" /></div>
     <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-scrollbar]]:hidden"><nav aria-label={t("后台主导航")} className="space-y-1 px-3 pb-3">{groups.map(group => {
       const items = group.items.filter(item => !term || group.label.toLowerCase().includes(term) || item.label.toLowerCase().includes(term))
@@ -54,7 +54,7 @@ function SideNavigation({ user, activeRoute, onNavigate }: { user: AdminUser; ac
         <CollapsibleContent><div className="mt-1 space-y-0.5 pl-7">{items.map(item => <Button key={item.id} asChild variant={item.id === activeRoute ? 'secondary' : 'ghost'} className="h-11 md:h-8 w-full justify-start px-3 text-xs font-normal"><MenuLink route={item.id} aria-current={item.id === activeRoute ? 'page' : undefined} onClick={onNavigate}>{item.label}</MenuLink></Button>)}</div></CollapsibleContent>
       </Collapsible>
     })}</nav></ScrollArea>
-    <div className="flex h-11 shrink-0 items-center justify-center gap-2 border-t px-4"><span className="text-[11px] text-muted-foreground">TG Ultra</span>{canViewVersion && !versionStatus.isError && versionStatus.data?.images?.admin?.state === 'update_available' && <Tooltip><TooltipTrigger asChild><MenuLink route='admin.setting.app_version.index' aria-label={t("版本更新")} className="flex size-5 items-center justify-center rounded-full bg-sky-500 text-white" onClick={onNavigate}><Download className="size-3" /></MenuLink></TooltipTrigger><TooltipContent side="right">{t("版本更新")}</TooltipContent></Tooltip>}</div>
+    <div className="flex h-11 shrink-0 items-center justify-center gap-2 border-t px-4"><span className="text-[11px] text-muted-foreground">TGBotPress</span>{canViewVersion && !versionStatus.isError && versionStatus.data?.images?.admin?.state === 'update_available' && <Tooltip><TooltipTrigger asChild><MenuLink route='admin.setting.app_version.index' aria-label={t("版本更新")} className="flex size-5 items-center justify-center rounded-full bg-sky-500 text-white" onClick={onNavigate}><Download className="size-3" /></MenuLink></TooltipTrigger><TooltipContent side="right">{t("版本更新")}</TooltipContent></Tooltip>}</div>
   </div>
 }
 

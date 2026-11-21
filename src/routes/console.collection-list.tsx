@@ -23,7 +23,7 @@ function CollectionList() {
   const [pageSize, setPageSize] = useState(10)
   const data = useQuery({ queryKey: ['collection-list', page, pageSize, search], queryFn: () => api<PageData>(`/api/collection-list?${new URLSearchParams({ page: String(page), pageSize: String(pageSize), search })}`), enabled: !!me.data, retry: false })
   if (me.isPending) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="size-4 animate-spin text-muted-foreground" aria-label="正在加载" /></div>
-  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Wallet className="size-4" />TG Ultra</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=collection"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
+  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Wallet className="size-4" />TGBotPress</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=collection"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
   const total = data.data?.total ?? 0
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   return <AdminShell user={me.data} title="归集记录" activeRoute="admin.collection.list.index" onRefresh={() => data.refetch()} onLogout={() => logout.mutate()}>

@@ -28,7 +28,7 @@ function TransitUserWalletPage() {
     onSuccess: async result => { setFeedback(result.message); setConfirm(null); setEditor(null); setForm({ wallet: '', amount: '' }); await client.invalidateQueries({ queryKey: ['transit-userwallet'] }) },
   })
   if (me.isPending) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="size-4 animate-spin text-muted-foreground" aria-label="正在加载" /></div>
-  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Wallet className="size-4" />TG Ultra</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=transitUserwallet">管理员登录</a></Button></section></main>
+  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><Wallet className="size-4" />TGBotPress</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=transitUserwallet">管理员登录</a></Button></section></main>
   const total = query.data?.total || 0, pages = Math.max(1, Math.ceil(total / pageSize))
   const openCreate = () => { mutation.reset(); setForm({ wallet: '', amount: '' }); setEditor('create') }
   const openAdjust = (row: Row) => { mutation.reset(); setForm({ wallet: row.wallet_addr, amount: '' }); setEditor(row) }

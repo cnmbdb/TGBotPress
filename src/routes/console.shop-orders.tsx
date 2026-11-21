@@ -35,7 +35,7 @@ function ShopOrders() {
     onSuccess: async result => { setSelected(null); setFeedback(result.message); await client.invalidateQueries({ queryKey: ['shop-orders'] }) },
   })
   if (me.isPending) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="size-4 animate-spin text-muted-foreground" aria-label="正在加载" /></div>
-  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><ShoppingBag className="size-4" />TG Ultra</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=shopOrders"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
+  if (!me.data) return <main className="flex min-h-screen items-center justify-center p-4"><section className="w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm"><div className="flex items-center gap-2 text-sm font-semibold"><ShoppingBag className="size-4" />TGBotPress</div><h1 className="text-base font-semibold">登录管理后台</h1><Button asChild className="w-full"><a href="/api/auth/start?destination=shopOrders"><KeyRound className="size-4" />管理员登录</a></Button></section></main>
   const total = query.data?.total || 0, pages = Math.max(1, Math.ceil(total / pageSize))
   const closeEditor = () => { setSelected(null); mutation.reset() }
   return <AdminShell user={me.data} title="商品订单" activeRoute="admin.shop.order.index" onRefresh={() => query.refetch()} onLogout={() => logout.mutate()}><main className="space-y-3 p-3 sm:p-4">

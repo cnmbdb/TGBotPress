@@ -22,7 +22,7 @@ function createRechargeTradesPage(host) {
     if (!me.data) return /* @__PURE__ */ jsx("main", { className: "flex min-h-screen items-center justify-center p-4", children: /* @__PURE__ */ jsxs("section", { className: "w-full max-w-sm space-y-4 rounded-xl bg-card p-6 shadow-sm", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-sm font-semibold", children: [
         /* @__PURE__ */ jsx(Wallet, { className: "size-4" }),
-        "TG Ultra"
+        "TGBotPress"
       ] }),
       /* @__PURE__ */ jsx("h1", { className: "text-base font-semibold", children: "\u767B\u5F55\u7BA1\u7406\u540E\u53F0" }),
       /* @__PURE__ */ jsx(Button, { asChild: true, className: "w-full", children: /* @__PURE__ */ jsxs("a", { href: "/api/auth/start?destination=rechargeTrades", children: [

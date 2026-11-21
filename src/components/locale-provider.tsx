@@ -8,30 +8,30 @@ import { untranslatedTextSelector } from '@/lib/locale-dom'
 
 type LocaleContextValue={locale:Locale;setLocale:(value:Locale)=>Promise<void>;t:(value:string)=>string;saveError:string}
 type LocaleRuntime = {
- __tgUltraLocaleContext?: ReturnType<typeof createContext<LocaleContextValue | null>>
- __tgUltraOriginalTextNodes?: WeakMap<Text,string>
- __tgUltraRenderedTextNodes?: WeakMap<Text,string>
- __tgUltraOriginalAttributes?: WeakMap<Element,Map<string,string>>
- __tgUltraRenderedAttributes?: WeakMap<Element,Map<string,string>>
+ __tgbotpressLocaleContext?: ReturnType<typeof createContext<LocaleContextValue | null>>
+ __tgbotpressOriginalTextNodes?: WeakMap<Text,string>
+ __tgbotpressRenderedTextNodes?: WeakMap<Text,string>
+ __tgbotpressOriginalAttributes?: WeakMap<Element,Map<string,string>>
+ __tgbotpressRenderedAttributes?: WeakMap<Element,Map<string,string>>
 }
 const localeRuntime = globalThis as typeof globalThis & LocaleRuntime
 // Keep caches and context stable across Vite HMR so live translated DOM can always return to its source text.
-const originalTextNodes=localeRuntime.__tgUltraOriginalTextNodes ??= new WeakMap<Text,string>()
-const renderedTextNodes=localeRuntime.__tgUltraRenderedTextNodes ??= new WeakMap<Text,string>()
-const originalAttributes=localeRuntime.__tgUltraOriginalAttributes ??= new WeakMap<Element,Map<string,string>>()
-const renderedAttributes=localeRuntime.__tgUltraRenderedAttributes ??= new WeakMap<Element,Map<string,string>>()
-const LocaleContext=localeRuntime.__tgUltraLocaleContext ??= createContext<LocaleContextValue|null>(null)
+const originalTextNodes=localeRuntime.__tgbotpressOriginalTextNodes ??= new WeakMap<Text,string>()
+const renderedTextNodes=localeRuntime.__tgbotpressRenderedTextNodes ??= new WeakMap<Text,string>()
+const originalAttributes=localeRuntime.__tgbotpressOriginalAttributes ??= new WeakMap<Element,Map<string,string>>()
+const renderedAttributes=localeRuntime.__tgbotpressRenderedAttributes ??= new WeakMap<Element,Map<string,string>>()
+const LocaleContext=localeRuntime.__tgbotpressLocaleContext ??= createContext<LocaleContextValue|null>(null)
 export function LocaleProvider({children}:{children:ReactNode}){
  const [locale,setLocaleState]=useState<Locale>('zh-CN'),[saveError,setSaveError]=useState('')
  useEffect(()=>{
   let alive=true
-  const local=localStorage.getItem('tg-ultra-locale')
+  const local=localStorage.getItem('tgbotpress-locale')
   if(locales.includes(local as Locale)){setLocaleState(local as Locale);setRuntimeLocale(local as Locale)}
-  fetch('/api/admin-locale',{credentials:'same-origin'}).then(async response=>{if(!response.ok)return null;return await response.json() as {locale?:string}}).then(value=>{if(alive&&locales.includes(value?.locale as Locale)){setRuntimeLocale(value!.locale as Locale);setLocaleState(value!.locale as Locale);localStorage.setItem('tg-ultra-locale',value!.locale as string)}}).catch(()=>undefined)
+  fetch('/api/admin-locale',{credentials:'same-origin'}).then(async response=>{if(!response.ok)return null;return await response.json() as {locale?:string}}).then(value=>{if(alive&&locales.includes(value?.locale as Locale)){setRuntimeLocale(value!.locale as Locale);setLocaleState(value!.locale as Locale);localStorage.setItem('tgbotpress-locale',value!.locale as string)}}).catch(()=>undefined)
   return()=>{alive=false}
  },[])
  useEffect(()=>{
-  document.documentElement.lang=locale;setRuntimeLocale(locale);localStorage.setItem('tg-ultra-locale',locale)
+  document.documentElement.lang=locale;setRuntimeLocale(locale);localStorage.setItem('tgbotpress-locale',locale)
   const blocked=(node:Node)=>Boolean(node.parentElement?.closest(untranslatedTextSelector))
   const renderText=(node:Text)=>{
    if(blocked(node))return
@@ -63,7 +63,7 @@ export function LocaleProvider({children}:{children:ReactNode}){
   observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','title','placeholder','alt']})
   return()=>observer.disconnect()
  },[locale])
- const setLocale=useCallback(async(value:Locale)=>{setRuntimeLocale(value);setLocaleState(value);setSaveError('');try{const response=await fetch('/api/admin-locale',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({locale:value})});if(!response.ok)throw new Error('save');localStorage.setItem('tg-ultra-locale',value)}catch{setSaveError(translateUiText('语言偏好未能保存',value))}},[])
+ const setLocale=useCallback(async(value:Locale)=>{setRuntimeLocale(value);setLocaleState(value);setSaveError('');try{const response=await fetch('/api/admin-locale',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({locale:value})});if(!response.ok)throw new Error('save');localStorage.setItem('tgbotpress-locale',value)}catch{setSaveError(translateUiText('语言偏好未能保存',value))}},[])
  const value=useMemo(()=>({locale,setLocale,t:(text:string)=>translateUiText(text,locale),saveError}),[locale,setLocale,saveError])
  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
 }
