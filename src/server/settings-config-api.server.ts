@@ -1,3 +1,4 @@
+import { DEFAULT_BRANDING } from "../lib/branding-defaults"
 import { z } from "zod"
 import { can, identity, run } from "./api.server"
 import { db } from "./db.server"
@@ -36,7 +37,7 @@ async function loadSettings() {
   const job = configValue(values.get("job_url")), tronscan = configValue(values.get("tronscan_api_keys")), trongrid = configValue(values.get("trongrid_api_keys"))
   const branding = configValue(values.get("branding"))
   return {
-    branding: { logoText: String(branding.logoText ?? "TGBotPress"), logoImageUrl: String(branding.logoImageUrl ?? ""), footerText: String(branding.footerText ?? "TGBotPress") },
+    branding: { logoText: String(branding.logoText ?? DEFAULT_BRANDING.logoText), logoImageUrl: String(branding.logoImageUrl ?? DEFAULT_BRANDING.logoImageUrl), footerText: String(branding.footerText ?? DEFAULT_BRANDING.footerText), footerIconUrl: String(branding.footerIconUrl ?? DEFAULT_BRANDING.footerIconUrl), footerLinkUrl: String(branding.footerLinkUrl ?? DEFAULT_BRANDING.footerLinkUrl) },
     jobUrl: String(job.url || process.env.JOB_URL || "http://tgbot-job:9501"),
     tronscanConfigured: !!String(tronscan.keys || "").trim(),
     trongridConfigured: !!String(trongrid.keys || "").trim(),
@@ -111,7 +112,14 @@ export function settingsConfigApi(request: Request) {
     }
     const body = await request.json() as Record<string, unknown>
     if (body.action === "save") {
-      const data = z.object({ action: z.literal("save"), jobUrl: z.string().trim().min(1).max(255), tronscanApiKeys: z.string().trim().max(400), trongridApiKeys: z.string().trim().max(400), branding: z.object({logoText:z.string().max(100),logoImageUrl:z.string().max(500),footerText:z.string().max(200)}).strict().optional() }).strict().parse(body)
+      const data = z.object({ action: z.literal("save"), jobUrl: z.string().trim().min(1).max(255), tronscanApiKeys: z.string().trim().max(400), trongridApiKeys: z.string().trim().max(400), branding: z.object({logoText:z.string().max(100),logoImageUrl:z.string().max(500),footerText:z.string().max(200),footerIconUrl:z.string().trim().max(500).optional(),footerLinkUrl:z.string().trim().max(500).optional()}).strict().optional() }).strict().parse(body)
+      for (const value of [data.branding?.footerIconUrl, data.branding?.footerLinkUrl]) {
+        if (value && (/^[\/]{2}/.test(value) || /[\\\x00-\x1f\x7f]/.test(value))) return Response.json({ message: "底部图标或链接地址无效" }, { status: 400, headers })
+        if (value && !/^\/(?!\/)/.test(value)) {
+          try { const url = new URL(value); if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) throw new Error() }
+          catch { return Response.json({ message: "底部图标或链接地址无效" }, { status: 400, headers }) }
+        }
+      }
       let jobUrl: string
       try { jobUrl = safeJobUrl(data.jobUrl) } catch (error) { return Response.json({ message: error instanceof Error ? error.message : "Job 地址无效" }, { status: 400, headers }) }
       const client = await db.connect()

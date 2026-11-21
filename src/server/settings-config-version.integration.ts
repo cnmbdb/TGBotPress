@@ -68,6 +68,12 @@ try{
   const read=await call(settingsConfigApi,1)
   assert.equal(read.response.status,200)
   assert.equal(read.data.tronscanConfigured,false)
+  assert.deepEqual(read.data.branding,{logoText:'TGBotPress',logoImageUrl:'/dmjduckx2.gif',footerText:'TGBotPress',footerIconUrl:'/github-mark.svg',footerLinkUrl:'https://hfz.pw/tgpress'})
+  const branding={logoText:'Custom',logoImageUrl:'',footerText:'Example',footerIconUrl:'',footerLinkUrl:'https://example.com'}
+  assert.equal((await call(settingsConfigApi,2,'POST',{action:'save',jobUrl:'http://job:9501',tronscanApiKeys:'',trongridApiKeys:'',branding})).response.status,200)
+  assert.deepEqual((await call(settingsConfigApi,2)).data.branding,branding)
+  assert.equal((await call(settingsConfigApi,2,'POST',{action:'save',jobUrl:'http://job:9501',tronscanApiKeys:'',trongridApiKeys:'',branding:{...branding,footerLinkUrl:'javascript:alert(1)'}})).response.status,400)
+
   assert.equal(read.data.licenseInfo,undefined)
   assert.equal((await call(settingsConfigApi,1,'GET',undefined,'https://settings-parity.test/api/settings-config?action=license-balance')).response.status,404)
   assert.equal((await call(settingsConfigApi,1,'POST',{action:'activate',authCode:'fixture'})).response.status,400)
@@ -83,7 +89,7 @@ try{
   const insecure=await call(settingsConfigApi,2,'POST',{action:'save',jobUrl:'http://example.com',tronscanApiKeys:'',trongridApiKeys:''})
   assert.equal(insecure.response.status,400)
   assert.equal((await setup.query("SELECT config_val FROM t_sys_config WHERE config_key='job_url'")).rows[0].config_val,'{"url":"http://job:9501"}')
-  assert.equal((await setup.query("SELECT action FROM t_platform_audit_log WHERE action='system.config.update'")).rows.length,1)
+  assert.equal((await setup.query("SELECT action FROM t_platform_audit_log WHERE action='system.config.update'")).rows.length,2)
  })
  await test('version page read status is mocked safely and update actions require origin and permission gates',async()=>{
   const read=await call(settingsVersionApi,2,'GET',undefined,'https://settings-parity.test/api/settings-version')
@@ -110,6 +116,6 @@ try{
   assert.equal((await call(settingsVersionApi,3,'POST',{target:'images'},'https://settings-parity.test/api/settings-version')).response.status,403)
   const origin=await call(settingsVersionApi,1,'POST',{target:'images'},'https://settings-parity.test/api/settings-version','https://evil.test')
   assert.equal(origin.response.status,403)
-  assert.equal((await setup.query('SELECT count(*)::int AS n FROM t_platform_audit_log')).rows[0].n,1)
+  assert.equal((await setup.query('SELECT count(*)::int AS n FROM t_platform_audit_log')).rows[0].n,2)
  })
 }finally{globalThis.fetch=originalFetch;await setup.end();const{db}=await import('./db.server');await db.end();await rm(runtimeDir,{recursive:true,force:true})}
