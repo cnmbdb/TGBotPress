@@ -62,7 +62,7 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
   </tr>
   <tr>
     <td align="center" width="50%"><a href="docs/images/screenshots/plugins.png"><img src="docs/images/screenshots/plugins.png" alt="TGBotPress 插件管理页面" width="100%"></a><br><strong>插件管理</strong></td>
-    <td width="50%"></td>
+    <td align="center" width="50%"><a href="docs/images/screenshots/plugin-development.png"><img src="docs/images/screenshots/plugin-development.png" alt="TGBotPress 模块插件开发页面" width="100%"></a><br><strong>插件开发</strong></td>
   </tr>
 </table>
 
