@@ -4,7 +4,7 @@
 
 The application is PostgreSQL-specific. `src/server/db.server.ts` exports a `pg.Pool`, and request handlers depend on `pg` query results and `PoolClient` transactions. Production startup imports `pg` directly in `scripts/migrate-production.mjs` and runs PostgreSQL-only SQL from both `legacy/000-legacy-schema.sql` and `migrations/*.sql`.
 
-The current source contains roughly 3,500 numbered PostgreSQL placeholders and 1,500 occurrences of PostgreSQL-specific constructs such as `jsonb`, array operators, casts, `RETURNING`, advisory locks, partial indexes, bytea, and PostgreSQL date arithmetic. Driver substitution by changing `DB_HOST` or a URL cannot support another engine.
+The current source contains roughly 3,500 numbered PostgreSQL placeholders and 1,500 occurrences of PostgreSQL-specific constructs such as `jsonb`, array operators, casts, `RETURNING`, advisory locks, partial indexes, bytea, and PostgreSQL date arithmetic. Driver substitution by changing `DB_HOST` or a URL cannot support another engine. A provider-neutral query/result contract now exists, and a MySQL connection adapter handles connection pooling, transactions and positional placeholder ordering. The adapter is not selected by the app yet, and the PostgreSQL schema/query dialect has not been migrated.
 
 ## Target architecture
 
