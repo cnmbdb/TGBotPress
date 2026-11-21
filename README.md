@@ -53,21 +53,18 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
 
 ## 界面预览
 
-### 管理员登录
+点击截图可查看原图。
 
-![TGBotPress 管理员登录页面](docs/images/screenshots/login.png)
-
-### 管理后台
-
-在仪表盘查看内置命令，通过侧边栏进入机器人和各业务模块。
-
-![TGBotPress 管理后台仪表盘](docs/images/screenshots/dashboard.png)
-
-### 插件管理
-
-查看内置模块及其状态，并从插件管理页面进入插件市场和开发入口。
-
-![TGBotPress 插件管理页面](docs/images/screenshots/plugins.png)
+<table>
+  <tr>
+    <td align="center" width="50%"><a href="docs/images/screenshots/login.png"><img src="docs/images/screenshots/login.png" alt="TGBotPress 管理员登录页面" width="100%"></a><br><strong>管理员登录</strong></td>
+    <td align="center" width="50%"><a href="docs/images/screenshots/dashboard.png"><img src="docs/images/screenshots/dashboard.png" alt="TGBotPress 管理后台仪表盘" width="100%"></a><br><strong>管理后台</strong></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="docs/images/screenshots/plugins.png"><img src="docs/images/screenshots/plugins.png" alt="TGBotPress 插件管理页面" width="100%"></a><br><strong>插件管理</strong></td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 > [!NOTE]
 > 截图展示当前界面；插件远程安装和第三方隔离的状态请以实际版本及[插件开发文档](docs/plugin-development.md)为准。
