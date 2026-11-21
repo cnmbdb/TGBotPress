@@ -1,6 +1,6 @@
 <div align="center">
 
-![TGBotPress 展示动画](docs/images/tgbotpress-demo-4k.gif)
+![TGBotPress 展示动画](docs/images/tgbotpress-banner-hd.gif)
 
 # TGBotPress
 
