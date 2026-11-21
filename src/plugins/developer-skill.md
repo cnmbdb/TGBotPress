@@ -5,7 +5,7 @@ description: Develop or migrate a TGBotPress/TG Ultra npm module plugin, includi
 
 # TGBotPress 插件开发
 
-先阅读仓库 AGENTS.md、docs/plugin-development.md、platform/packages/plugin-sdk/src/index.d.ts，并核对 package.json、宿主注册及实际测试；以当前代码而非示例为准。遵守仓库要求的 GitNexus 影响分析，保留已有改动。
+先阅读仓库 AGENTS.md、docs/plugin-development.md、packages/plugin-sdk/src/index.d.ts，并核对 package.json、宿主注册及实际测试；以当前代码而非示例为准。保留已有改动，并检查目标功能的调用关系和影响。
 
 ## 当前契约
 插件为独立 ESM npm 包，`package.json` 的 `exports` 显式提供 JS 和类型入口；根入口导出 `manifest` 与 `plugin`。当前 SDK 0.1.0 的 manifest 必填 `id`、`version`、`hostRange`、`sdkVersion`、`name`，可声明 `dependencies`、`menuRoutes`、`apiRoutes`、`tasks`、`drainTasks` 和 `configTypes`。`plugin` 含 manifest，可选 `activate`、`deactivate`；不要假设声明自动注册路由或能力。根据目标需求列出插件入口、宿主注入类型、权限、数据库表和迁移、任务及 Telegram 更新，参考现有 groups 和 cloneproxy 包。

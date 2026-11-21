@@ -1,25 +1,39 @@
-# TG Ultra platform migration
+# TGBotPress
 
-TanStack Start + React + TypeScript backend, PostgreSQL, TanStack Query/Table and registry-generated shadcn/ui components.
+TGBotPress 是面向 Telegram Bot 的模块化插件系统，由开源基座和插件市场组成。项目希望为开发者提供可复用的机器人管理、后台和插件能力，减少重复开发，让用户按需组合功能。
 
-## Development
+我们的目标是让任何开发者都能开发 Telegram Bot 模块插件，并将插件发布到插件市场。目前项目仍在逐步完善这一能力：已有插件 SDK、内置模块的生命周期管理，以及向 ETS 提交插件展示信息的入口；第三方插件的通用安装、运行时扩展与隔离尚未完成，不能认为任意插件已经可以直接安装运行。详见[插件开发文档](docs/plugin-development.md)。
 
-From this directory: `npm ci`, `npm run db:migrate`, `npm run dev`.
-The Vite config reads the repository root `.env` server-side. Set `PLATFORM_ORIGIN` and `LEGACY_ORIGIN` to explicit, trusted origins. `PLATFORM_DB_HOST` can override `DB_HOST` when running on the Docker host. Never prefix credentials with `VITE_`.
-Set `PLATFORM_URL` in the legacy Admin environment to exactly the same origin as `PLATFORM_ORIGIN`.
+## 已有模块
 
-New database tables are additive; no legacy table is recreated. The migration uses a transaction and can be rerun.
+当前内置目录包括群组管理、闪兑钱包、能量管理、会员管理、监控管理、归集管理、商城管理和克隆/代理。各模块的独立程度不同，部分业务仍由基座负责；具体接入点见 `src/plugins/catalog.ts` 和 `packages/`。
 
-## First migrated slice
+## 技术栈
 
-- Native TypeScript PostgreSQL queries and authorization for bot listing, filtering and pagination.
-- Native transactional bot-note updates and an audit entry; no Telegram API side effects.
-- Opaque, hashed native sessions tied to the existing device-session expiry/revocation.
-- Temporary, 60-second, one-use PKCE-style handoff from the authenticated PHP app. Existing verification and license gates run before issuance. Password/Passkey/MFA remain on the legacy login until separately ported.
-- Bot tokens/passwords are excluded from API projections.
+TanStack Start、React、TypeScript、PostgreSQL、TanStack Query/Table 和 shadcn/ui。
 
-This is a development migration entry point, not a production replacement yet. Creation/deletion/webhooks, financial workflows and job workers still run in the legacy services. See `../docs/migrations/tanstack.md` for the inventory and next phases.
+## 本地开发
 
-## Validation
+在仓库根目录执行：
 
-`npm run typecheck`, `npm test`, `npm run build`. Validate `/api/health`; unauthenticated `/api/bots` must return 401 and cross-origin writes must return 403. Complete authentication in a browser, then check a restricted account separately before production cutover.
+```sh
+npm ci
+npm run db:migrate
+npm run dev
+```
+
+Vite 在服务端读取仓库根目录的 `.env`。将 `PLATFORM_ORIGIN` 和 `LEGACY_ORIGIN` 设置为明确且可信的地址；在 Docker 宿主机运行时可用 `PLATFORM_DB_HOST` 覆盖 `DB_HOST`。凭据不能使用 `VITE_` 前缀。如需与旧版 Admin 联动，将其 `PLATFORM_URL` 设置为与 `PLATFORM_ORIGIN` 完全相同的地址。
+
+## 验证
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
+
+检查 `/api/health`，并验证未登录访问受保护 API 时被拒绝。涉及数据库、Telegram 或支付的功能，还需要在隔离环境中执行对应集成测试和端到端验证。
+
+## 许可证
+
+参见 [LICENSE](LICENSE)。
