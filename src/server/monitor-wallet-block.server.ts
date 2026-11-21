@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 import { db } from './db.server'
 import { decodeTronAddress, parseMonitorBlock } from '@tgbotpress/plugin-monitor/block.js'
 

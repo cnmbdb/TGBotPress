@@ -50,7 +50,7 @@ function safeServiceUrl(raw: string, label: string) {
   return url.origin
 }
 function safeJobUrl(raw: string) { return safeServiceUrl(raw, "Job") }
-async function saveValue(client: import("pg").PoolClient, key: ConfigKey, value: Record<string, unknown>, adminId: string) {
+async function saveValue(client: import("./database.types").DatabaseClient, key: ConfigKey, value: Record<string, unknown>, adminId: string) {
   const encoded = JSON.stringify(value)
   const found = await client.query("SELECT rid FROM t_sys_config WHERE config_key=$1 ORDER BY rid LIMIT 1 FOR UPDATE", [key])
   if (found.rowCount) {

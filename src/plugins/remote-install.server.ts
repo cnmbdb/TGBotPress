@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from '../server/database.types'
 import { downloadAndStagePluginArtifact } from './package-download.server'
 import { installPluginDependencies, recordStagedArtifact, type NpmRunner } from './package-installer.server'
 import { loadInstalledPlugin } from './plugin-runtime.server'

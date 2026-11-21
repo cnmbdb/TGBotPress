@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 import { expireUnpaidOrders } from './cancel-unpaid-orders.server'
 import { refreshRealtimeTrxRates } from './transit-realtime-rate.server'

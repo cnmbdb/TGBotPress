@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { DatabaseConnection as Pool } from '@tgbotpress/plugin-sdk';
 type Database = Pick<Pool, 'query' | 'connect'>;
 type Msg = {
     chat?: {

@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '../server/database.types'
 import { packageNameForPlugin } from './install-records.server'
 
 type Db = Pick<Pool, 'query' | 'connect'>

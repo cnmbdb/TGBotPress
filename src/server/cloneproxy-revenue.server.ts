@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 import type { SchedulerLogger } from './scheduler.server'
 import { syncCloneProxyRevenue as runCloneProxyRevenue } from '@tgbotpress/plugin-cloneproxy/settlement.js'

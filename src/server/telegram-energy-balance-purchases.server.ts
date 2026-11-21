@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 
 type Database = Pick<Pool, 'query'>
 type Message = Record<string, any> & { message_id?: number | string; text?: string; chat: { id: number | string; type: string; username?: string }; from?: { id?: number | string; is_bot?: boolean; username?: string } }

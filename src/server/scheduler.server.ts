@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { acquireTaskLease, releaseTaskLease, renewTaskLease } from './task-lease.server'
 
 export type SchedulerDatabase = Pick<Pool, 'query' | 'connect'>

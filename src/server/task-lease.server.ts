@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 
 type LeaseDatabase = Pick<Pool, 'query'>
 

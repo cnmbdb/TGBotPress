@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { DatabaseConnection as Pool } from '@tgbotpress/plugin-sdk';
 export type VerificationHost = {
     db: Pick<Pool, 'query' | 'connect'>;
     cookie: (name: string, value: string, maxAge: number) => string;

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk'
 export type CloneProxyTokenHost = {
   cloneBotConfiguration: (client: Pick<PoolClient, 'query'>, from: number, to: number, force: boolean) => Promise<unknown>
   configuredWebhookOrigin: (values: { webUrl?: string; platformOrigin?: string; appUrl?: string }) => string

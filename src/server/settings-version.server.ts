@@ -4,7 +4,7 @@ import { execFile as execFileCallback } from "node:child_process"
 import { promisify } from "node:util"
 import { z } from "zod"
 import { identity, run } from "./api.server"
-import type { Pool } from "pg"
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from "./db.server"
 
 const execFile = promisify(execFileCallback)

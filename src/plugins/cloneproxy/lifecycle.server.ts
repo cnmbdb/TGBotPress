@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '../../server/database.types'
 import { can, identity, run } from '../../server/api.server'
 import { db } from '../../server/db.server'
 import { pluginAcceptsWrites } from '../module-lifecycle.server'

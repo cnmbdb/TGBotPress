@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg';
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk';
 export type CloneProxyIdentity = {
     id: string;
     name: string;

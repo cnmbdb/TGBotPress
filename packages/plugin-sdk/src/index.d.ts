@@ -30,3 +30,9 @@ export type TgbotpressPlugin = {
   activate?: (host: PluginHost) => Promise<void> | void
   deactivate?: (host: PluginHost) => Promise<void> | void
 }
+
+export type DatabaseRow = any
+export type DatabaseResult<Row = any> = { rows: Row[]; rowCount: number | null }
+export interface DatabaseQueryable { query<Row = any>(sql: string, values?: any[]): Promise<DatabaseResult<Row>> }
+export interface DatabaseClient extends DatabaseQueryable { release(): void }
+export interface DatabaseConnection extends DatabaseQueryable { connect(): Promise<DatabaseClient>; end(): Promise<void> }

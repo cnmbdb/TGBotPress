@@ -1,4 +1,4 @@
-import type { PoolClient } from 'pg';
+import type { DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk';
 type ChallengePolicy = {
     ad_verification_timeout_seconds: number;
 };

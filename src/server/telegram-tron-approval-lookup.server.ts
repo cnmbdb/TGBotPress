@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { isTronAddress } from './telegram-address-lookup.server'
 
 type Database = Pick<Pool, 'query'>

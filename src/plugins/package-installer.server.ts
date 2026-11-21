@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from '../server/database.types'
 const execFileAsync = promisify(execFile)
 
 import { trustedPackageForPlugin, type TrustedPluginPackage } from './install-policy.server'

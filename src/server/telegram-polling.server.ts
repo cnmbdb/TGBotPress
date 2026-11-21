@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { acquireTaskLease, releaseTaskLease } from './task-lease.server'
 import { registeredCloneProxy as cloneProxyPlugin } from '../plugins/registry.server'
 const { handleToken: handleCloneProxyTokenUpdate } = cloneProxyPlugin.telegram

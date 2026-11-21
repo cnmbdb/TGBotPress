@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 import { invalidateLegacyBotCache, telegramRequest, type BotDependencies } from './bot-service.server'
 import { commandScopes } from './telegram-config-service.server'

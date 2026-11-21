@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { registeredCloneProxy as cloneProxyPlugin } from '../plugins/registry.server'
 const { appendButton: appendCloneProxyButton } = cloneProxyPlugin.telegram
 

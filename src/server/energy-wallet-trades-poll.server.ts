@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 import { decimalUnits } from '@tgbotpress/plugin-energy/units.js'
 import { energyWalletStartTimestamp } from '@tgbotpress/plugin-energy/poll.js'

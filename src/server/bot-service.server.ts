@@ -1,7 +1,7 @@
 import { createHash, createHmac } from 'node:crypto'
 import { unlink } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 
 export class BotServiceError extends Error { constructor(public status: number, message: string) { super(message) } }
 type Queryable = Pick<PoolClient, 'query'>

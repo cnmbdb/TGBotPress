@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 
 type Database = Pick<Pool, 'query' | 'connect'>

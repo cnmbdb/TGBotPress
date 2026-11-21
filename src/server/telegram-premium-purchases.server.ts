@@ -1,6 +1,6 @@
 import { constants, createPrivateKey, privateDecrypt, randomBytes, randomInt, type KeyObject } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 
 type Database = Pick<Pool, 'query' | 'connect'>
 type Queryable = Pick<Pool, 'query'>

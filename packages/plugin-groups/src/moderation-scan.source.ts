@@ -1,4 +1,4 @@
-import type { Pool, PoolClient, QueryResultRow } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient, DatabaseRow } from '@tgbotpress/plugin-sdk'
 export type ScanHost = { db: Pick<Pool, 'query' | 'connect'>; startAdVerificationChallenge: (...args: any[]) => Promise<any>; effectiveGroupAdKeywords: (...args: any[]) => string[] }
 export function createModerationScan(host: ScanHost) {
 const { db, startAdVerificationChallenge, effectiveGroupAdKeywords } = host
@@ -52,7 +52,7 @@ async function telegram(fetcher:typeof fetch,token:string,method:string,payload:
   try{const r=await fetcher('https://api.telegram.org/bot'+token+'/'+method,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),redirect:'error',signal:AbortSignal.timeout(12_000)});return await r.json() as NoticeResult}catch{return{ok:false,description:'Telegram 接口暂时无法连接'}}
 }
 const restricted={can_send_messages:false,can_send_audios:false,can_send_documents:false,can_send_photos:false,can_send_videos:false,can_send_video_notes:false,can_send_voice_notes:false,can_send_polls:false,can_send_other_messages:false,can_add_web_page_previews:false,can_react_to_messages:false}
-async function locked<T extends QueryResultRow>(pool:Database,parameters:unknown[],sql:string,handle:(row:T,client:PoolClient)=>Promise<void>){
+async function locked<T extends DatabaseRow>(pool:Database,parameters:unknown[],sql:string,handle:(row:T,client:PoolClient)=>Promise<void>){
  const c=await pool.connect();let active=false
  try{await c.query('BEGIN');active=true;const r=await c.query<T>(sql,parameters);const row=r.rows[0];if(!row){await c.query('ROLLBACK');active=false;return false}await handle(row,c);await c.query('COMMIT');active=false;return true}
  catch(e){if(active)try{await c.query('ROLLBACK')}catch{}throw e}finally{c.release()}

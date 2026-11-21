@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process'
 import { constants, createPrivateKey, privateDecrypt, type KeyObject } from 'node:crypto'
 import { promisify } from 'node:util'
 import { readFileSync } from 'node:fs'
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 import { db } from './db.server'
 
 const execFileAsync = promisify(execFile)

@@ -1,5 +1,5 @@
 import type { syncTelegramGroupMessages } from '../../server/moderation-group-updates.server'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from '../../server/database.types'
 import { can, identity, run } from '../../server/api.server'
 import { db } from '../../server/db.server'
 import type { GroupPluginTask } from './tasks.server'

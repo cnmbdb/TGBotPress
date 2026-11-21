@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from '@tgbotpress/plugin-sdk'
 export type GroupMessage = { chat: { id: number | string; type: string; username?: string }; message_id: number | string; date?: number; from?: { id?: number | string; is_bot?: boolean }; text?: string; caption?: string; new_chat_title?: string; reply_to_message?: GroupMessage }
 export type GroupUpdatesHost = { db: Pick<Pool, 'query' | 'connect'>; scanRecentGroupMessages: (...args: any[]) => Promise<any>; telegramCalculatorReply: (...args: any[]) => any; handleTelegramKeywordReply: (...args: any[]) => Promise<any>; handleTelegramExchangeRate: (...args: any[]) => Promise<any>; lookupTronApprovals: (...args: any[]) => Promise<any>; lookupTronAddress: (...args: any[]) => Promise<any>; DISABLED_SECRET_COMMAND_REPLY: string; isDisabledSensitiveTelegramCommand: (...args: any[]) => boolean }
 export function createGroupUpdates(host: GroupUpdatesHost) {

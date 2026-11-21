@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto'
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk'
 
 type Database = Pick<Pool, 'query' | 'connect'>
 type Config = { is_enable: number; charge_enable: number; open_price: string; default_revenue_ratio: string; merchant_limit: number; bot_token: string | null; recharge_wallet_addr: string | null }

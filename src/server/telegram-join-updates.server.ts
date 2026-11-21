@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { analyzeMessage } from './moderation-scan.server'
 import { estimateTelegramAccountAgeSeconds } from './telegram-account-age.server'
 import { db } from './db.server'

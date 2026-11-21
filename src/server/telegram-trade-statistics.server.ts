@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 
 type Database = Pick<Pool, 'query'>
 type StatRow = Record<string, unknown> & { is_total: boolean; transferto_address: string | null }

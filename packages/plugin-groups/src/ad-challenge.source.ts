@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
-import type { PoolClient } from 'pg'
+import type { DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk'
 type TelegramResult = { ok?: boolean; description?: string; result?: { message_id?: number } }
 type ChallengePolicy = { ad_verification_timeout_seconds: number }
 type ChallengeMessage = { from?: { id?: number | string; username?: string; first_name?: string; last_name?: string } }

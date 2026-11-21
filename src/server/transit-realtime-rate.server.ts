@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 import { db } from './db.server'
 
 type Database = Pick<Pool, 'connect'>

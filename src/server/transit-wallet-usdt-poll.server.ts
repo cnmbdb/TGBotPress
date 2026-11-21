@@ -1,4 +1,4 @@
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { db } from './db.server'
 import { transitUsdtStartTimestamp } from '@tgbotpress/plugin-transit/poll.js'
 type Database = Pick<Pool, 'query' | 'connect'>

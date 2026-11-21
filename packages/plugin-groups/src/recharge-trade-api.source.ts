@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from '@tgbotpress/plugin-sdk'
 type Identity = { id: string; name: string; roles: string[]; permissions: string[]; routes: string[] }
 type Host = { db: Pick<Pool, 'query' | 'connect'>; identity: (request: Request) => Promise<Identity>; can: (user: Identity, permission: string, route: string) => boolean; run: (handler: () => Promise<Response>) => Promise<Response> }
 export function createApi(host: Host) {

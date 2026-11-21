@@ -1,5 +1,5 @@
 import { effectiveShopPrice as packageEffectiveShopPrice, shopMoney as packageShopMoney } from '@tgbotpress/plugin-shop/pricing.js'
-import type { Pool } from 'pg'
+import type { DatabaseConnection as Pool } from './database.types'
 import { constants, createPrivateKey, privateDecrypt, randomBytes, randomInt, type KeyObject } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { db } from './db.server'

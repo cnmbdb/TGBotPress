@@ -1,4 +1,4 @@
-import type { Pool, PoolClient, QueryResultRow } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient, DatabaseRow } from './database.types'
 import { db } from './db.server'
 
 type Database = Pick<Pool, 'query' | 'connect'>
@@ -78,7 +78,7 @@ async function sendMany(notices:Notice[],token:string,fetcher:typeof fetch,shoul
 function assertContinuing(shouldContinue:()=>boolean) {
   if(!shouldContinue()) throw new Error('WORKER_STOPPING')
 }
-async function lockRow<T extends QueryResultRow>(pool:Database,rid:number,sql:string,handle:(row:T,client:PoolClient)=>Promise<{sent:number;failed:number}> ) {
+async function lockRow<T extends DatabaseRow>(pool:Database,rid:number,sql:string,handle:(row:T,client:PoolClient)=>Promise<{sent:number;failed:number}> ) {
   const client=await pool.connect()
   try {
     await client.query('BEGIN')
@@ -92,7 +92,7 @@ async function lockRow<T extends QueryResultRow>(pool:Database,rid:number,sql:st
     throw error
   } finally {client.release()}
 }
-async function processIds<T extends QueryResultRow & {rid:number}>(pool:Database,selectSql:string,lockSql:string,handle:(row:T,client:PoolClient)=>Promise<{sent:number;failed:number}>,shouldContinue:()=>boolean,logger:Logger,task:string) {
+async function processIds<T extends {rid:number}>(pool:Database,selectSql:string,lockSql:string,handle:(row:T,client:PoolClient)=>Promise<{sent:number;failed:number}>,shouldContinue:()=>boolean,logger:Logger,task:string) {
   let scanned=0,sent=0,failed=0
   const pending=await pool.query<T>(selectSql)
   for(const candidate of pending.rows) {

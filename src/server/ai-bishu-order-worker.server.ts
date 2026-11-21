@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 import { db } from './db.server'
 import { placeOrder, placeBishuCountOrder, recoverBishuEnergy, type Platform } from './ai-energy-order-worker.server'
 

@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg'
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from './database.types'
 import { BotServiceError, invalidateLegacyBotCache, telegramRequest, type BotDependencies } from './bot-service.server'
 import type { ConfigKind } from '../config/telegram-config'
 export type CommandInput={bot_rid:number;command_type:number;command:string;description:string;seq_sn:number}

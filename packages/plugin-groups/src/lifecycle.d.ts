@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from 'pg';
+import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '@tgbotpress/plugin-sdk';
 type Db = Pick<Pool, 'query' | 'connect'>;
 export type GroupPluginState = 'active' | 'draining' | 'uninstalled';
 export type GroupPluginAction = 'disable' | 'resume' | 'uninstall' | 'install';
