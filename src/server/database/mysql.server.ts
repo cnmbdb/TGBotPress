@@ -26,6 +26,13 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: s
     if (mode === 'block') { output += c; if (c === '*' && next === '/') { output += sql[++i]; mode = 'normal' }; continue }
     if (c === "'") { mode = 'single'; output += c; continue }
     if (c === '"') { mode = 'double'; output += c; continue }
+    if (c === ':' && next === ':') {
+      let j = i + 2
+      while (/[a-z0-9_]/i.test(sql[j] || '')) j++
+      if (sql[j] === '(') { while (j < sql.length && sql[j] !== ')') j++; if (sql[j] === ')') j++ }
+      if (sql[j] === '[' && sql[j + 1] === ']') j += 2
+      if (j > i + 2) { i = j - 1; continue }
+    }
     if (c === '`') { mode = 'backtick'; output += c; continue }
     if (c === '-' && next === '-') { mode = 'line'; output += c + next; i++; continue }
     if (c === '/' && next === '*') { mode = 'block'; output += c + next; i++; continue }

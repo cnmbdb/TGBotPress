@@ -25,3 +25,7 @@ test('MySQL adapter rewrites plugin target ANY membership to JSON containment', 
     values: ['transit'],
   })
 })
+
+test('MySQL adapter removes PostgreSQL casts without changing quoted literals', () => {
+  assert.deepEqual(mysqlPlaceholders("SELECT $1::bigint, '$2::text'", ['42']), { sql: "SELECT ?, '$2::text'", values: ['42'] })
+})
