@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS t_platform_version_image_check (
-  image_key text PRIMARY KEY CHECK (image_key='platform'),
+  image_key varchar(191) PRIMARY KEY CHECK (image_key='platform'),
   image_name text NOT NULL,
   status varchar(32) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','checking','ready','failed')),
   digest text,

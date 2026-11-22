@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS t_platform_plugin_install_attempt (
-  plugin_id varchar(64) PRIMARY KEY,
+  plugin_id varchar(191) PRIMARY KEY,
   package_name text NOT NULL,
   version text NOT NULL,
   source text NOT NULL CHECK (source IN ('builtin', 'github-packages')),
