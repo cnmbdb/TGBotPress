@@ -1,5 +1,3 @@
-009-monitor-wallet-event-flags.sql
-011-platform-recharge-orders.sql
 020-platform-telegram-ignored-updates.sql (redundant for fresh MySQL schema; 006 will include ignored status)
 026-platform-groups-plugin.sql (JSON migration needs manual rewrite)
 028-plugin-telegram-config-links.sql
