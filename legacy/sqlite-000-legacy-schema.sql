@@ -44,7 +44,7 @@ CREATE TABLE t_admin_security_settings (
 );
 
 CREATE TABLE t_admin_device_session (
-    rid BIGINT  NOT NULL,
+    rid INTEGER PRIMARY KEY AUTOINCREMENT,
     admin_id bigint NOT NULL,
     session_hash VARCHAR(64) NOT NULL,
     login_ip VARCHAR(45),
@@ -56,7 +56,6 @@ CREATE TABLE t_admin_device_session (
     last_seen_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     revoked_at TEXT,
-    CONSTRAINT t_admin_device_session_pkey PRIMARY KEY (rid),
     CONSTRAINT t_admin_device_session_session_hash_key UNIQUE (session_hash)
 );
 
