@@ -1,0 +1,6 @@
+ALTER TABLE t_telegram_bot_user ADD COLUMN total_recharge_trx NUMERIC(20,6) NOT NULL DEFAULT 0;
+ALTER TABLE t_telegram_bot_user ADD COLUMN total_recharge_usdt NUMERIC(20,6) NOT NULL DEFAULT 0;
+UPDATE t_telegram_bot_user AS u SET total_recharge_trx=COALESCE((SELECT SUM(r.recharge_pay_price) FROM t_fms_recharge_order r WHERE r.bot_rid=u.bot_rid AND CAST(u.tg_uid AS TEXT)=r.recharge_tg_uid AND r.status=1 AND LOWER(r.recharge_coin_name)='trx' AND COALESCE(SUBSTR(r.comments,1,16),'')<>'__clone_proxy__:'),0);
+UPDATE t_telegram_bot_user AS u SET total_recharge_usdt=COALESCE((SELECT SUM(r.recharge_pay_price) FROM t_fms_recharge_order r WHERE r.bot_rid=u.bot_rid AND CAST(u.tg_uid AS TEXT)=r.recharge_tg_uid AND r.status=1 AND LOWER(r.recharge_coin_name)='usdt' AND COALESCE(SUBSTR(r.comments,1,16),'')<>'__clone_proxy__:'),0);
+CREATE TABLE IF NOT EXISTS t_platform_cloneproxy_token_waiter(master_bot_rid INTEGER NOT NULL,pay_user_tg_uid BIGINT NOT NULL,clone_proxy_order_rid BIGINT NOT NULL,expires_at TEXT NOT NULL,consumed_at TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(master_bot_rid,pay_user_tg_uid));
+CREATE INDEX IF NOT EXISTS t_platform_cloneproxy_token_waiter_expiry_idx ON t_platform_cloneproxy_token_waiter(expires_at,consumed_at);

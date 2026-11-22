@@ -1,5 +1,3 @@
-ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN disabled_at TEXT;
-ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN enabled_at TEXT;
 CREATE TABLE IF NOT EXISTS t_platform_plugin_execution (
   plugin_id text NOT NULL,
   task_name text NOT NULL,

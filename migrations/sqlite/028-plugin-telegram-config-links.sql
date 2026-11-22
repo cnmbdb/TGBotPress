@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS t_platform_plugin_config_link(plugin_id TEXT NOT NULL,config_type TEXT NOT NULL CHECK(config_type IN ('command','keyboard','keyreply','keyreply_keyboard')),bot_rid BIGINT NOT NULL DEFAULT 0,config_rid BIGINT NOT NULL,manual_override BOOLEAN NOT NULL DEFAULT FALSE,create_by TEXT,create_time TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE(plugin_id,config_type,bot_rid,config_rid,manual_override));
+CREATE INDEX IF NOT EXISTS t_platform_plugin_config_lookup_idx ON t_platform_plugin_config_link(config_type,bot_rid,config_rid);
+CREATE INDEX IF NOT EXISTS t_platform_plugin_config_plugin_idx ON t_platform_plugin_config_link(plugin_id,bot_rid);
+CREATE TABLE IF NOT EXISTS t_platform_plugin_config_refresh(bot_rid BIGINT PRIMARY KEY,status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','done','failed')),attempts INTEGER NOT NULL DEFAULT 0,next_attempt_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,lease_until TEXT,lease_owner TEXT,last_error_code TEXT,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE INDEX IF NOT EXISTS t_platform_plugin_config_refresh_work_idx ON t_platform_plugin_config_refresh(status,next_attempt_at,bot_rid);
+INSERT OR IGNORE INTO t_platform_plugin_config_link(plugin_id,config_type,bot_rid,config_rid,manual_override,create_by)
+SELECT CASE LOWER(command) WHEN 'trx' THEN 'transit' WHEN 'z0' THEN 'transit' WHEN 'buyenergy' THEN 'energy' WHEN 'buypremium' THEN 'premium' END,'command',bot_rid,rid,FALSE,'auto' FROM t_telegram_bot_command WHERE LOWER(command) IN ('trx','z0','buyenergy','buypremium');
+INSERT OR IGNORE INTO t_platform_plugin_config_link(plugin_id,config_type,bot_rid,config_rid,manual_override,create_by)
+SELECT CASE opt_type WHEN 3 THEN 'energy' WHEN 10 THEN 'energy' WHEN 11 THEN 'energy' WHEN 4 THEN 'premium' WHEN 6 THEN 'monitor' WHEN 7 THEN 'shop' WHEN 9 THEN 'transit' WHEN 8 THEN 'transit' END,'keyreply',bot_rid,rid,FALSE,'auto' FROM t_telegram_bot_keyreply WHERE opt_type IN (3,4,6,7,8,9,10,11);
+INSERT OR IGNORE INTO t_platform_plugin_config_link(plugin_id,config_type,bot_rid,config_rid,manual_override,create_by)
+SELECT 'cloneproxy','keyboard',0,rid,FALSE,'auto' FROM t_telegram_bot_keyboard WHERE LOWER(keyboard_name) LIKE '%克隆/代理%';

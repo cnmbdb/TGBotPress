@@ -1,5 +1,1 @@
-009-monitor-wallet-event-flags.sql
-011-platform-recharge-orders.sql
 020-platform-telegram-ignored-updates.sql (status is included by SQLite 006)
-026-platform-groups-plugin.sql
-028-plugin-telegram-config-links.sql

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_update (
  bot_rid integer NOT NULL,
  update_id bigint NOT NULL,
  update_body TEXT NOT NULL,
- status varchar(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','processed','failed')),
+ status varchar(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','processed','failed','ignored')),
  attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
  next_attempt_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  lease_owner varchar(64),
