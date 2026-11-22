@@ -38,3 +38,16 @@ test('MySQL adapter converts idempotent inserts and upserts', () => {
     sql: 'INSERT INTO t_demo(id,value) VALUES(?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),updated_at=now()', values: [1, 'x'],
   })
 })
+
+test('MySQL adapter extracts supported RETURNING clauses and leaves WHERE bindings reusable', () => {
+  const bound = mysqlPlaceholders('UPDATE t_demo SET value=$2 WHERE id=$1 RETURNING id', ['record-1', 'new'])
+  assert.deepEqual(bound, {
+    sql: 'UPDATE t_demo SET value=? WHERE id=?',
+    values: ['new', 'record-1'],
+    returning: { kind: 'update', table: 't_demo', columns: 'id', where: 'id=$1' },
+  })
+})
+
+test('MySQL adapter fails closed on CTE RETURNING forms that need a dialect-specific rewrite', () => {
+  assert.throws(() => mysqlPlaceholders('WITH changed AS (UPDATE t SET x=1 RETURNING id) SELECT * FROM changed'), /mysql_returning_unsupported_statement/)
+})

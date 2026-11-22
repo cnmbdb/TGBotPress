@@ -4,7 +4,21 @@ import type { DatabaseClient, DatabaseConnection, DatabaseResult, DatabaseRow } 
 export type MysqlConfig = { host: string; port: number; database: string; user: string; password: string; connectionLimit?: number }
 
 /** Convert PostgreSQL positional placeholders while preserving quoted strings and comments. */
-export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: string; values: unknown[] } {
+type ReturningPlan = { kind: 'insert'; table: string; columns: string } | { kind: 'update'|'delete'; table: string; columns: string; where: string }
+type MysqlBound = { sql: string; values: unknown[]; returning?: ReturningPlan }
+export function mysqlPlaceholders(sql: string, values: unknown[] = []): MysqlBound {
+  let returning: ReturningPlan | undefined
+  let match = /^\s*INSERT INTO ([\w.]+)[\s\S]*?\s+RETURNING\s+([\w.,\s]+)\s*;?\s*$/i.exec(sql)
+  if (match) { returning = { kind: 'insert', table: match[1], columns: match[2].trim() }; sql = sql.slice(0, match.index + match[0].lastIndexOf(' RETURNING')).trim() }
+  else {
+    match = /^\s*(UPDATE|DELETE FROM) ([\w.]+)[\s\S]*?\s+WHERE ([\s\S]*?)\s+RETURNING\s+([\w.,\s]+)\s*;?\s*$/i.exec(sql)
+    if (match) {
+      const kind = match[1].toUpperCase() === 'UPDATE' ? 'update' : 'delete'
+      returning = { kind, table: match[2], columns: match[4].trim(), where: match[3].trim() }
+      sql = sql.slice(0, match.index + match[0].lastIndexOf(' RETURNING')).trim()
+    }
+  }
+  if (/\bRETURNING\b/i.test(sql) && !returning) throw new Error('mysql_returning_unsupported_statement')
   const arrayParameters = new Set<number>()
   if (/\bON CONFLICT\b/i.test(sql)) {
     if (/\bDO NOTHING\s*;?$/i.test(sql)) {
@@ -53,7 +67,18 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: s
     output += c
   }
   if (index !== values.length) throw new Error(`mysql_parameter_count_mismatch:${index}:${values.length}`)
-  return { sql: output, values: mapped }
+  return returning ? { sql: output, values: mapped, returning } : { sql: output, values: mapped }
+}
+
+function whereBindings(where: string, values: unknown[]) {
+  const bound: unknown[] = []
+  const sql = where.replace(/\$(\d+)/g, (_match, position) => {
+    const index = Number(position) - 1
+    if (index < 0 || index >= values.length) throw new Error(`mysql_parameter_missing:${position}`)
+    bound.push(values[index])
+    return `$${bound.length}`
+  })
+  return { sql, values: bound }
 }
 
 function result<Row extends DatabaseRow>(rows: Row[] | ResultSetHeader): DatabaseResult<Row> {
@@ -65,8 +90,23 @@ class MysqlClient implements DatabaseClient {
   constructor(private readonly connection: PoolConnection) {}
   async query<Row extends DatabaseRow = DatabaseRow>(sql: string, values: any[] = []): Promise<DatabaseResult<Row>> {
     const bound = mysqlPlaceholders(sql, values)
+    const returning = bound.returning
+    if (returning?.kind === 'delete') {
+      const where = whereBindings(returning.where, values); const selected = await this.connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${mysqlPlaceholders(where.sql, where.values).sql}`, where.values as any[])
+      await this.connection.query(bound.sql, bound.values as any[])
+      return { rows: selected[0] as Row[], rowCount: (selected[0] as Row[]).length }
+    }
     const [rows] = await this.connection.query(bound.sql, bound.values as any[])
-    return result<Row>(rows as Row[] | ResultSetHeader)
+    if (!returning) return result<Row>(rows as Row[] | ResultSetHeader)
+    if (returning.kind === 'insert') {
+      const header = rows as ResultSetHeader
+      if (!header.insertId) return { rows: [], rowCount: header.affectedRows }
+      const key = returning.columns.split(',')[0].trim()
+      const selected = await this.connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${key}=?`, [header.insertId])
+      return { rows: selected[0] as Row[], rowCount: header.affectedRows }
+    }
+    const where = whereBindings(returning.where, values); const selected = await this.connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${mysqlPlaceholders(where.sql, where.values).sql}`, where.values as any[])
+    return { rows: selected[0] as Row[], rowCount: (rows as ResultSetHeader).affectedRows }
   }
   async beginTransaction() { await this.connection.beginTransaction() }
   async commit() { await this.connection.commit() }
@@ -82,8 +122,26 @@ export class MysqlDatabase implements DatabaseConnection {
   }
   async query<Row extends DatabaseRow = DatabaseRow>(sql: string, values: any[] = []): Promise<DatabaseResult<Row>> {
     const bound = mysqlPlaceholders(sql, values)
-    const [rows] = await this.pool.query(bound.sql, bound.values as any[])
-    return result<Row>(rows as Row[] | ResultSetHeader)
+    const connection = await this.pool.getConnection()
+    try {
+      const returning = bound.returning
+      if (returning?.kind === 'delete') {
+        const where = whereBindings(returning.where, values); const selected = await connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${mysqlPlaceholders(where.sql, where.values).sql}`, where.values as any[])
+        await connection.query(bound.sql, bound.values as any[])
+        return { rows: selected[0] as Row[], rowCount: (selected[0] as Row[]).length }
+      }
+      const [rows] = await connection.query(bound.sql, bound.values as any[])
+      if (!returning) return result<Row>(rows as Row[] | ResultSetHeader)
+      if (returning.kind === 'insert') {
+        const header = rows as ResultSetHeader
+        if (!header.insertId) return { rows: [], rowCount: header.affectedRows }
+        const key = returning.columns.split(',')[0].trim()
+        const selected = await connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${key}=?`, [header.insertId])
+        return { rows: selected[0] as Row[], rowCount: header.affectedRows }
+      }
+      const where = whereBindings(returning.where, values); const selected = await connection.query(`SELECT ${returning.columns} FROM ${returning.table} WHERE ${mysqlPlaceholders(where.sql, where.values).sql}`, where.values as any[])
+      return { rows: selected[0] as Row[], rowCount: (rows as ResultSetHeader).affectedRows }
+    } finally { connection.release() }
   }
   async connect(): Promise<DatabaseClient> { return new MysqlClient(await this.pool.getConnection()) }
   async end() { await this.pool.end() }
