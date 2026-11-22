@@ -5,14 +5,44 @@ type Db=Pick<Pool,'query'|'connect'>
 export type PluginConfigType='command'|'keyboard'|'keyreply'|'keyreply_keyboard'
 type ConfigRow={rid:number;bot_rid?:number;command?:string;keyboard_name?:string;monitor_word?:string;opt_type?:number}
 
-export async function annotatePluginConfigRows(pool:Pick<Pool,'query'>,type:PluginConfigType,rows:ConfigRow[]) {
+function automaticPluginTargets(type:PluginConfigType,name:string,opt:number):string[]{
+  if(type==='command')return ({trx:['transit'],z0:['transit'],buyenergy:['energy'],buypremium:['premium']} as Record<string,string[]>)[name.toLowerCase()]??[]
+  if(type==='keyboard')return name.toLowerCase().includes('克隆/代理')?['cloneproxy']:[]
+  if(type==='keyreply'||type==='keyreply_keyboard'){
+    const ids=opt===3||opt===10||opt===11?['energy']:opt===4?['premium']:opt===6?['monitor']:opt===7?['shop']:opt===9?['transit']:opt===8?['transit','energy','premium']:opt===1&&name.toLowerCase().includes('克隆/代理')?['cloneproxy']:[]
+    return ids
+  }
+  return []
+}
+export async function annotatePluginConfigRows(pool:Pick<Pool,'query'> & {dialect?:string},type:PluginConfigType,rows:ConfigRow[]) {
   if(!rows.length)return rows.map(row=>({...row,plugin_ids:[],plugin_names:[],plugin_effective:true,plugin_manual_override:false}))
+  if(pool.dialect==='mysql'){
+    const links=(await pool.query<{plugin_id:string;config_type:PluginConfigType;bot_rid:number;config_rid:number;manual_override:boolean}>("SELECT plugin_id,config_type,bot_rid,config_rid,manual_override FROM t_platform_plugin_config_link")).rows
+    const lifecycle=(await pool.query<{plugin_id:string;state:string}>("SELECT plugin_id,state FROM t_platform_plugin_lifecycle")).rows
+    const active=new Set(lifecycle.filter(row=>row.state==='active').map(row=>row.plugin_id))
+    const byConfig=(kind:PluginConfigType,bot:number,rid:number,name:string,opt:number)=>{
+      const found=links.filter(link=>link.config_type===kind&&Number(link.bot_rid)===bot&&Number(link.config_rid)===rid)
+      const manual=found.filter(link=>Boolean(link.manual_override))
+      return {ids:[...new Set((manual.length?manual:found).map(link=>link.plugin_id).filter(id=>id!=='__none__').concat(manual.length?[]:automaticPluginTargets(kind,name,opt)))],manual:manual.length>0}
+    }
+    const relations=type==='keyreply_keyboard'?new Map((await pool.query<{rid:number;bot_rid:number;reply_rid:number;monitor_word:string;opt_type:number;keyboard_rid:number;keyboard_name:string}>(`SELECT relation.rid,relation.bot_rid,reply.rid AS reply_rid,reply.monitor_word,reply.opt_type,keyboard.rid AS keyboard_rid,keyboard.keyboard_name FROM t_telegram_bot_keyreply_keyboard relation JOIN t_telegram_bot_keyreply reply ON reply.rid=relation.keyreply_rid JOIN t_telegram_bot_keyboard keyboard ON keyboard.rid=relation.keyboard_rid WHERE relation.rid IN (${rows.map(()=>'?').join(',')})`,rows.map(row=>row.rid))).rows.map(row=>[Number(row.rid),row])):new Map()
+    const labels=new Map(pluginCatalog.map(plugin=>[plugin.id,plugin.name]))
+    return rows.map(row=>{
+      const bot=type==='keyboard'?0:Number(row.bot_rid??0),rid=Number(row.rid),name=String(type==='command'?row.command??'':type==='keyboard'?row.keyboard_name??'':type==='keyreply'?row.monitor_word??'':''),opt=Number(row.opt_type??0)
+      let target=byConfig(type,bot,rid,name,opt),ids=target.ids,effective=ids.length===0||ids.some(id=>active.has(id))
+      if(type==='keyreply_keyboard'){
+        const relation=relations.get(rid)
+        if(relation){const parent=byConfig('keyreply',Number(relation.bot_rid),Number(relation.reply_rid),String(relation.monitor_word??''),Number(relation.opt_type));const keyboard=byConfig('keyboard',0,Number(relation.keyboard_rid),String(relation.keyboard_name??''),0);ids=[...new Set([...ids,...parent.ids,...keyboard.ids])];effective=effective&&(parent.ids.length===0||parent.ids.some(id=>active.has(id)))&&(keyboard.ids.length===0||keyboard.ids.some(id=>active.has(id)))}
+      }
+      return {...row,plugin_ids:ids,plugin_names:ids.map(id=>labels.get(id as PluginId)??id),plugin_effective:effective,plugin_manual_override:target.manual}
+    })
+  }
   const values: unknown[]=[]
   const sourceRows=rows.map(row=>{
     const configRid=Number(row.rid),botRid=type==='keyboard'?0:Number(row.bot_rid??0)
     const itemName=String(type==='command'?row.command??'':type==='keyboard'?row.keyboard_name??'':type==='keyreply'?row.monitor_word??'':'')
     const optType=Number(row.opt_type??0)
-    const offset=values.length
+    const offset=values.length+1
     values.push(configRid,botRid,itemName,optType)
     return `SELECT $${offset+1}::bigint AS config_rid,$${offset+2}::bigint AS bot_rid,$${offset+3}::text AS item_name,$${offset+4}::int AS opt_type`
   }).join(' UNION ALL ')
