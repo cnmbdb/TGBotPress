@@ -6,6 +6,13 @@ export type MysqlConfig = { host: string; port: number; database: string; user: 
 /** Convert PostgreSQL positional placeholders while preserving quoted strings and comments. */
 export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: string; values: unknown[] } {
   const arrayParameters = new Set<number>()
+  if (/\bON CONFLICT\b/i.test(sql)) {
+    if (/\bDO NOTHING\s*;?$/i.test(sql)) {
+      sql = sql.replace(/\bINSERT INTO\b/i, 'INSERT IGNORE INTO').replace(/\s+ON CONFLICT(?:\s*\([^)]*\))?\s+DO NOTHING\s*;?$/i, '')
+    } else {
+      sql = sql.replace(/\s+ON CONFLICT\s*\([^)]*\)\s+DO UPDATE SET\s+([\s\S]*?)\s*;?$/i, (_match, assignments) => ` ON DUPLICATE KEY UPDATE ${assignments.replace(/EXCLUDED\.([\w]+)/gi, 'VALUES($1)')}`)
+    }
+  }
   sql = sql.replace(/\$(\d+)\s*=\s*ANY\((platform_plugin_config_targets\([^)]*\))\)/g, (_match, position, targets) => `JSON_CONTAINS(${targets},JSON_QUOTE(CAST($${position} AS CHAR)))`)
   sql = sql.replace(/([\w.`]+)\s*=\s*ANY\(\$(\d+)::(?:integer|bigint|text|varchar)\[\]\)/gi, (_match, column, position) => { arrayParameters.add(Number(position) - 1); return `${column} IN ($${position})` })
   sql = sql.replace(/enabled_bot_ids\s*=\s*'\{\}'/gi, 'enabled_bot_ids=JSON_ARRAY()')

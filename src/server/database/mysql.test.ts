@@ -29,3 +29,12 @@ test('MySQL adapter rewrites plugin target ANY membership to JSON containment', 
 test('MySQL adapter removes PostgreSQL casts without changing quoted literals', () => {
   assert.deepEqual(mysqlPlaceholders("SELECT $1::bigint, '$2::text'", ['42']), { sql: "SELECT ?, '$2::text'", values: ['42'] })
 })
+
+test('MySQL adapter converts idempotent inserts and upserts', () => {
+  assert.deepEqual(mysqlPlaceholders('INSERT INTO t_demo(id,value) VALUES($1,$2) ON CONFLICT(id) DO NOTHING', [1, 'x']), {
+    sql: 'INSERT IGNORE INTO t_demo(id,value) VALUES(?,?)', values: [1, 'x'],
+  })
+  assert.deepEqual(mysqlPlaceholders('INSERT INTO t_demo(id,value) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET value=EXCLUDED.value,updated_at=now()', [1, 'x']), {
+    sql: 'INSERT INTO t_demo(id,value) VALUES(?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),updated_at=now()', values: [1, 'x'],
+  })
+})
