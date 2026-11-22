@@ -7,10 +7,15 @@ type ConfigRow={rid:number;bot_rid?:number;command?:string;keyboard_name?:string
 
 export async function annotatePluginConfigRows(pool:Pick<Pool,'query'>,type:PluginConfigType,rows:ConfigRow[]) {
   if(!rows.length)return rows.map(row=>({...row,plugin_ids:[],plugin_names:[],plugin_effective:true,plugin_manual_override:false}))
-  const botIds=rows.map(row=>type==='keyboard'?0:Number(row.bot_rid??0))
-  const ids=rows.map(row=>Number(row.rid))
-  const names=rows.map(row=>String(type==='command'?row.command??'':type==='keyboard'?row.keyboard_name??'':type==='keyreply'?row.monitor_word??'':''))
-  const opts=rows.map(row=>Number(row.opt_type??0))
+  const values: unknown[]=[]
+  const sourceRows=rows.map(row=>{
+    const configRid=Number(row.rid),botRid=type==='keyboard'?0:Number(row.bot_rid??0)
+    const itemName=String(type==='command'?row.command??'':type==='keyboard'?row.keyboard_name??'':type==='keyreply'?row.monitor_word??'':'')
+    const optType=Number(row.opt_type??0)
+    const offset=values.length
+    values.push(configRid,botRid,itemName,optType)
+    return `SELECT $${offset+1}::bigint AS config_rid,$${offset+2}::bigint AS bot_rid,$${offset+3}::text AS item_name,$${offset+4}::int AS opt_type`
+  }).join(' UNION ALL ')
   const query=await pool.query<{config_rid:number;bot_rid:number;plugin_ids:string[];effective:boolean;manual_override:boolean}>(`SELECT r.config_rid,r.bot_rid,
     platform_plugin_config_targets($1,r.bot_rid,r.config_rid,r.item_name,r.opt_type) AS plugin_ids,
     (platform_plugin_config_effective($1,r.bot_rid,r.config_rid,r.item_name,r.opt_type) AND ($1<>'keyreply_keyboard' OR EXISTS (
@@ -22,7 +27,7 @@ export async function annotatePluginConfigRows(pool:Pick<Pool,'query'>,type:Plug
         AND platform_plugin_config_effective('keyboard',0,keyboard.rid,keyboard.keyboard_name,NULL)
     ))) AS effective,
     EXISTS(SELECT 1 FROM t_platform_plugin_config_link l WHERE l.config_type=$1 AND l.bot_rid=r.bot_rid AND l.config_rid=r.config_rid AND l.manual_override) AS manual_override
-    FROM unnest($2::bigint[],$3::bigint[],$4::text[],$5::int[]) AS r(config_rid,bot_rid,item_name,opt_type)`,[type,ids,botIds,names,opts])
+    FROM (${sourceRows}) AS r`,[type,...values])
   const result=new Map(query.rows.map(row=>[`${row.bot_rid}:${row.config_rid}`,row]))
   const labels=new Map(pluginCatalog.map(plugin=>[plugin.id,plugin.name]))
   return rows.map(row=>{const state=result.get(`${type==='keyboard'?0:Number(row.bot_rid??0)}:${row.rid}`);const ids=state?.plugin_ids??[];return {...row,plugin_ids:ids,plugin_names:ids.map(id=>labels.get(id as PluginId)??id),plugin_effective:state?.effective??true,plugin_manual_override:state?.manual_override??false}})
