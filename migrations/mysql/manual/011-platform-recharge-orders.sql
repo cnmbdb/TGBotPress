@@ -9,7 +9,7 @@ JOIN (
   WHERE status=1 AND LOWER(recharge_coin_name)='trx'
     AND COALESCE(LEFT(comments,16),'') <> '__clone_proxy__:'
   GROUP BY bot_rid,recharge_tg_uid
-) AS r ON u.bot_rid=r.bot_rid AND CAST(u.tg_uid AS CHAR)=r.recharge_tg_uid
+) AS r ON u.bot_rid=r.bot_rid AND BINARY CAST(u.tg_uid AS CHAR)=BINARY r.recharge_tg_uid
 SET u.total_recharge_trx=COALESCE(r.total,0);
 
 UPDATE t_telegram_bot_user AS u
@@ -19,7 +19,7 @@ JOIN (
   WHERE status=1 AND LOWER(recharge_coin_name)='usdt'
     AND COALESCE(LEFT(comments,16),'') <> '__clone_proxy__:'
   GROUP BY bot_rid,recharge_tg_uid
-) AS r ON u.bot_rid=r.bot_rid AND CAST(u.tg_uid AS CHAR)=r.recharge_tg_uid
+) AS r ON u.bot_rid=r.bot_rid AND BINARY CAST(u.tg_uid AS CHAR)=BINARY r.recharge_tg_uid
 SET u.total_recharge_usdt=COALESCE(r.total,0);
 
 CREATE TABLE IF NOT EXISTS t_platform_cloneproxy_token_waiter (

@@ -117,7 +117,7 @@ class MysqlClient implements DatabaseClient {
 export class MysqlDatabase implements DatabaseConnection {
   private constructor(private readonly pool: Pool) {}
   static connect(config: MysqlConfig) {
-    const pool = mysql.createPool({ ...config, waitForConnections: true, namedPlaceholders: false, timezone: '+08:00', decimalNumbers: false })
+    const pool = mysql.createPool({ ...config, waitForConnections: true, multipleStatements: true, namedPlaceholders: false, timezone: '+08:00', decimalNumbers: false })
     return new MysqlDatabase(pool)
   }
   async query<Row extends DatabaseRow = DatabaseRow>(sql: string, values: any[] = []): Promise<DatabaseResult<Row>> {

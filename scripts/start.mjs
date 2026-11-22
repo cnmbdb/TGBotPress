@@ -10,7 +10,8 @@ if (!allowedModes.has(mode)) {
 const supervisor = createProcessSupervisor()
 
 try {
-  const migration = await supervisor.runChild({ label: 'database migration', args: ['scripts/migrate-production.mjs'] })
+  const migrationScript = (process.env.DB_PROVIDER || 'postgres').toLowerCase() === 'mysql' ? 'scripts/migrate-mysql-production.mjs' : 'scripts/migrate-production.mjs'
+  const migration = await supervisor.runChild({ label: 'database migration', args: [migrationScript] })
   if (supervisor.stopping || migration.code !== 0) {
     process.exitCode = migration.code || (supervisor.stopping ? 0 : 1)
   } else {
