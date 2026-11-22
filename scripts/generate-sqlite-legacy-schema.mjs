@@ -1,0 +1,27 @@
+import { readFile, writeFile } from 'node:fs/promises'
+const source=new URL('../legacy/mysql-000-legacy-schema.sql',import.meta.url)
+const output=new URL('../legacy/sqlite-000-legacy-schema.sql',import.meta.url)
+let sql=await readFile(source,'utf8')
+const compositeKeys=[...sql.matchAll(/ALTER TABLE (\w+)\s+ADD CONSTRAINT (\w+) PRIMARY KEY \(([^)]+)\);/gi)].map(match=>({table:match[1],name:match[2],columns:match[3]}))
+const uniqueKeys=[...sql.matchAll(/ALTER TABLE (\w+)\s+ADD CONSTRAINT (\w+) UNIQUE \(([^)]+)\);/gi)].map(match=>({table:match[1],name:match[2],columns:match[3]}))
+sql=sql.replace(/ALTER TABLE \w+\s+ADD CONSTRAINT \w+ (?:PRIMARY KEY|UNIQUE) \([^)]+\);\s*/gi,'')
+sql=sql.replace(/ALTER TABLE t_telegram_clone_proxy_order\s+ADD COLUMN active_opening_master_bot_rid[\s\S]*?ADD COLUMN active_opening_pay_user_tg_uid[^;]+;/i, '')
+sql=sql.replace(/CREATE UNIQUE INDEX uq_telegram_clone_proxy_opening_pending_user ON t_telegram_clone_proxy_order \(active_opening_master_bot_rid, active_opening_pay_user_tg_uid\);/i, "CREATE UNIQUE INDEX uq_telegram_clone_proxy_opening_pending_user ON t_telegram_clone_proxy_order (master_bot_rid,pay_user_tg_uid) WHERE order_type='opening' AND status IN (0,1);")
+sql=sql.replace(/\b(?:BIGINT|INTEGER) AUTO_INCREMENT NOT NULL PRIMARY KEY/gi,'INTEGER PRIMARY KEY AUTOINCREMENT')
+  .replace(/\b(?:BIGINT|INTEGER) AUTO_INCREMENT PRIMARY KEY/gi,'INTEGER PRIMARY KEY AUTOINCREMENT')
+  .replace(/\bAUTO_INCREMENT\b/gi,'')
+  .replace(/\bDATETIME\(6\)/gi,'TEXT')
+  .replace(/\bJSON\b/gi,'TEXT')
+  .replace(/CURRENT_TIMESTAMP\(6\)/gi,'CURRENT_TIMESTAMP')
+  .replace(/\s+CHARACTER SET ascii COLLATE ascii_bin/gi,'')
+for(const {table,name,columns} of compositeKeys){
+  const start=sql.indexOf(`CREATE TABLE ${table} (`)
+  const end=sql.indexOf('\n);',start)
+  if(start<0||end<0)throw new Error(`SQLite schema conversion cannot find composite primary key table ${table}`)
+  const block=sql.slice(start,end)
+  sql=sql.slice(0,end)+`,\n    CONSTRAINT ${name} PRIMARY KEY (${columns})`+sql.slice(end)
+}
+sql += '\n' + uniqueKeys.map(key=>`CREATE UNIQUE INDEX ${key.name} ON ${key.table} (${key.columns});`).join('\n') + '\n'
+if(/\b(?:ENGINE=|AUTO_INCREMENT|DATETIME\(6\)|CHARACTER SET|COLLATE utf8mb4)/i.test(sql))throw new Error('SQLite schema conversion left MySQL-only syntax')
+await writeFile(output,`-- Generated from legacy/mysql-000-legacy-schema.sql.\n${sql.trim()}\n`)
+console.log(`Wrote ${output.pathname}`)
