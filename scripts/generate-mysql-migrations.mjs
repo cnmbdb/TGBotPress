@@ -8,7 +8,8 @@ await writeFile(new URL('README.md', output), '# MySQL migration set\n\nGenerate
 for (const name of files) {
   let sql = await readFile(new URL(name, source), 'utf8')
   if (name === '009-monitor-wallet-event-flags.sql' || name === '011-platform-recharge-orders.sql') { const manualName = name.startsWith('009-') ? name : name; const body = await readFile(new URL(`manual/${manualName}`, output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
-  if (name === '026-platform-groups-plugin.sql') { manual.push(name + ' (JSON migration needs manual rewrite)'); continue }
+  if (name === '027-platform-plugin-lifecycle-modules.sql') sql = sql.replace(/ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN(?: IF NOT EXISTS)? (?:disabled_at|enabled_at) timestamptz;\s*/gi, '')
+  if (name === '026-platform-groups-plugin.sql') { const body = await readFile(new URL('manual/026-platform-groups-plugin.sql', output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
   if (name === '025-platform-plugin-lifecycle.sql') sql = sql.replace("enabled_bot_ids integer[] NOT NULL DEFAULT '{}'", "enabled_bot_ids JSON NOT NULL DEFAULT ('[]')")
   if (name === '020-platform-telegram-ignored-updates.sql') { manual.push(name + ' (redundant for fresh MySQL schema; 006 will include ignored status)'); continue }
   if (/\bDO\s+\$\$|CREATE (?:OR REPLACE )?FUNCTION|\bARRAY\[|\b\w+\[\]|\bunnest\s*\(|\barray_agg\s*\(|\bANY\s*\(/i.test(sql)) { manual.push(name); continue }
@@ -23,6 +24,7 @@ for (const name of files) {
     .replace(/\bstate\s+text\b/gi, 'state varchar(32)')
     .replace(/\bstatus\s+text\b/gi, 'status varchar(32)')
     .replace(/\btask_name\s+text\b/gi, 'task_name varchar(100)')
+    .replace(/\bowner\s+text\b/gi, 'owner varchar(100)')
     .replace(/\buuid\b/gi, 'CHAR(36)')
     .replace(/\bjsonb\b/gi, 'JSON')
     .replace(/\bbytea\b/gi, 'LONGBLOB')
@@ -40,7 +42,7 @@ for (const name of files) {
   if (name === '001-platform.sql') sql = sql.replace('credential_id varchar(1400) NOT NULL UNIQUE', 'credential_id varchar(1400) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE')
   if (name === '006-platform-telegram-inbox.sql') sql = sql.replace("'processed','failed'", "'processed','failed','ignored'")
   if (name === '012-platform-collection-wallet-sweeps.sql') sql = sql.replace('balance_snapshot numeric(20,6) NOT NULL CHECK (balance_snapshot >= amount),', 'balance_snapshot numeric(20,6) NOT NULL,\n  CONSTRAINT t_platform_collection_wallet_action_balance_chk CHECK (balance_snapshot >= amount),')
-  if (name === '026-platform-groups-plugin.sql') { manual.push(name + ' (JSON migration needs manual rewrite)'); continue }
+  if (name === '026-platform-groups-plugin.sql') { const body = await readFile(new URL('manual/026-platform-groups-plugin.sql', output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
   if (name === '025-platform-plugin-lifecycle.sql') sql = sql.replace("enabled_bot_ids integer[] NOT NULL DEFAULT '{}'", "enabled_bot_ids JSON NOT NULL DEFAULT ('[]')")
   if (name === '005-platform-native-login.sql') sql = sql.replace(/ALTER TABLE t_platform_admin_login_email_code ADD COLUMN salt char\(64\) NOT NULL DEFAULT '';?/i, '')
   if (name === '003-platform-passkey.sql') sql = sql.replace(/(CREATE UNIQUE INDEX t_admin_passkey_user_handle_idx ON t_admin\(passkey_user_handle\)) WHERE passkey_user_handle IS NOT NULL;/i, '$1;')
