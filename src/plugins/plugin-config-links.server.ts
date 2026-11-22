@@ -16,7 +16,7 @@ function automaticPluginTargets(type:PluginConfigType,name:string,opt:number):st
 }
 export async function annotatePluginConfigRows(pool:Pick<Pool,'query'> & {dialect?:string},type:PluginConfigType,rows:ConfigRow[]) {
   if(!rows.length)return rows.map(row=>({...row,plugin_ids:[],plugin_names:[],plugin_effective:true,plugin_manual_override:false}))
-  if(pool.dialect==='mysql'){
+  if(pool.dialect==='mysql'||pool.dialect==='sqlite'){
     const links=(await pool.query<{plugin_id:string;config_type:PluginConfigType;bot_rid:number;config_rid:number;manual_override:boolean}>("SELECT plugin_id,config_type,bot_rid,config_rid,manual_override FROM t_platform_plugin_config_link")).rows
     const lifecycle=(await pool.query<{plugin_id:string;state:string}>("SELECT plugin_id,state FROM t_platform_plugin_lifecycle")).rows
     const active=new Set(lifecycle.filter(row=>row.state==='active').map(row=>row.plugin_id))
