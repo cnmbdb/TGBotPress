@@ -9,6 +9,7 @@ class PgClient implements DatabaseClient {
   release() { this.client.release() }
 }
 class PgConnection implements DatabaseConnection {
+  readonly dialect = 'postgres' as const
   constructor(private readonly pool: pg.Pool) {}
   async query<Row extends DatabaseRow = DatabaseRow>(sql: string, values?: any[]): Promise<DatabaseResult<Row>> {
     return await this.pool.query(sql, values) as unknown as DatabaseResult<Row>

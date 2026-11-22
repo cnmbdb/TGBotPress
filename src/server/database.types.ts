@@ -5,6 +5,7 @@ export interface DatabaseQueryable {
 }
 export interface DatabaseClient extends DatabaseQueryable { release(): void }
 export interface DatabaseConnection extends DatabaseQueryable {
+  readonly dialect?: 'postgres' | 'mysql' | 'sqlite' | 'd1'
   connect(): Promise<DatabaseClient>
   end(): Promise<void>
 }

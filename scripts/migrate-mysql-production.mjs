@@ -6,7 +6,7 @@ const pool = mysql.createPool({
   host: process.env.PLATFORM_DB_HOST || process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306), database: process.env.DB_DATABASE,
   user: process.env.DB_USERNAME, password: process.env.DB_PASSWORD,
-  waitForConnections: true, multipleStatements: true, connectionLimit: 4, timezone: '+08:00',
+  waitForConnections: true, multipleStatements: true, connectionLimit: 4, charset: 'utf8mb4_0900_ai_ci', timezone: '+08:00',
 })
 const templates = ['t_telegram_bot','t_telegram_bot_command','t_telegram_bot_keyboard','t_telegram_bot_keyreply','t_telegram_bot_keyreply_keyboard','t_telegram_bot_ad','t_telegram_bot_ad_keyboard']
 try {
@@ -17,7 +17,7 @@ try {
     await pool.query(await readFile(new URL('../legacy/mysql-000-legacy-schema.sql', import.meta.url), 'utf8'))
     const hash = await bcrypt.hash(password, 12)
     await pool.execute("INSERT INTO t_admin(id,name,password,status) VALUES(1,'trxadmin',?,1)", [hash])
-    const defaults = (await readFile(new URL('../legacy/000-legacy-defaults.sql', import.meta.url), 'utf8')).replaceAll('public.', '').replace(/SELECT setval\([^;]+;\s*/gi, '')
+    const defaults = (await readFile(new URL('../legacy/000-legacy-defaults.sql', import.meta.url), 'utf8')).replaceAll('public.', '').replaceAll('\\', '\\\\').replace(/SELECT setval\([^;]+;\s*/gi, '')
     await pool.query(defaults)
     const seed = JSON.parse(await readFile(new URL('../legacy/telegram_templates.json', import.meta.url), 'utf8'))
     for (const table of templates) for (const row of seed[table]) {

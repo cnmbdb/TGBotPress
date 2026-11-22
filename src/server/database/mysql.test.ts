@@ -51,3 +51,7 @@ test('MySQL adapter extracts supported RETURNING clauses and leaves WHERE bindin
 test('MySQL adapter fails closed on CTE RETURNING forms that need a dialect-specific rewrite', () => {
   assert.throws(() => mysqlPlaceholders('WITH changed AS (UPDATE t SET x=1 RETURNING id) SELECT * FROM changed'), /mysql_returning_unsupported_statement/)
 })
+
+test('MySQL adapter duplicates bound values when PostgreSQL reuses a parameter', () => {
+  assert.deepEqual(mysqlPlaceholders('SELECT $1,$1,$2', ['same','other']), { sql: 'SELECT ?,?,?', values: ['same','same','other'] })
+})

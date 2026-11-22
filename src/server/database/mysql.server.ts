@@ -30,7 +30,7 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): MysqlBou
   sql = sql.replace(/\$(\d+)\s*=\s*ANY\((platform_plugin_config_targets\([^)]*\))\)/g, (_match, position, targets) => `JSON_CONTAINS(${targets},JSON_QUOTE(CAST($${position} AS CHAR)))`)
   sql = sql.replace(/([\w.`]+)\s*=\s*ANY\(\$(\d+)::(?:integer|bigint|text|varchar)\[\]\)/gi, (_match, column, position) => { arrayParameters.add(Number(position) - 1); return `${column} IN ($${position})` })
   sql = sql.replace(/enabled_bot_ids\s*=\s*'\{\}'/gi, 'enabled_bot_ids=JSON_ARRAY()')
-  let output = '', mapped: unknown[] = [], index = 0, mode: 'normal'|'single'|'double'|'backtick'|'line'|'block' = 'normal'
+  let output = '', mapped: unknown[] = [], usedParameters = new Set<number>(), mode: 'normal'|'single'|'double'|'backtick'|'line'|'block' = 'normal'
   for (let i = 0; i < sql.length; i++) {
     const c = sql[i], next = sql[i + 1]
     if (mode === 'single' || mode === 'double' || mode === 'backtick') {
@@ -62,11 +62,11 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): MysqlBou
       while (/[0-9]/.test(sql[j] || '')) j++
       const position = Number(sql.slice(i + 1, j)) - 1
       if (position >= values.length) throw new Error(`mysql_parameter_missing:${position + 1}`)
-      output += '?'; mapped.push(Array.isArray(values[position]) && !arrayParameters.has(position) ? JSON.stringify(values[position]) : values[position]); i = j - 1; index++; continue
+      output += '?'; mapped.push(Array.isArray(values[position]) && !arrayParameters.has(position) ? JSON.stringify(values[position]) : values[position]); usedParameters.add(position); i = j - 1; continue
     }
     output += c
   }
-  if (index !== values.length) throw new Error(`mysql_parameter_count_mismatch:${index}:${values.length}`)
+  if (usedParameters.size !== values.length || values.some((_value, position) => !usedParameters.has(position))) throw new Error(`mysql_parameter_count_mismatch:${usedParameters.size}:${values.length}`)
   return returning ? { sql: output, values: mapped, returning } : { sql: output, values: mapped }
 }
 
@@ -115,9 +115,10 @@ class MysqlClient implements DatabaseClient {
 }
 
 export class MysqlDatabase implements DatabaseConnection {
+  readonly dialect = 'mysql' as const
   private constructor(private readonly pool: Pool) {}
   static connect(config: MysqlConfig) {
-    const pool = mysql.createPool({ ...config, waitForConnections: true, multipleStatements: true, namedPlaceholders: false, timezone: '+08:00', decimalNumbers: false })
+    const pool = mysql.createPool({ ...config, waitForConnections: true, multipleStatements: true, namedPlaceholders: false, charset: 'utf8mb4_0900_ai_ci', timezone: '+08:00', decimalNumbers: false })
     return new MysqlDatabase(pool)
   }
   async query<Row extends DatabaseRow = DatabaseRow>(sql: string, values: any[] = []): Promise<DatabaseResult<Row>> {
