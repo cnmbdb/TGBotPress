@@ -114,8 +114,9 @@ export async function identity(request: Request): Promise<Identity> {
   else {
     const raw = cookies(request)[SESSION]
     if (!isToken(raw)) throw new HttpError(401, '请先登录')
+    const currentTime = db.dialect === 'mysql' ? 'UTC_TIMESTAMP(6)' : "(now() AT TIME ZONE 'UTC')"
     const result = await db.query(`SELECT a.id::text,a.name FROM t_platform_session s JOIN t_admin a ON a.id=s.admin_id JOIN t_admin_device_session d ON d.rid=s.device_session_id AND d.admin_id=a.id
-      WHERE s.token_hash=$1 AND s.expires_at > (now() AT TIME ZONE 'UTC') AND a.status=1 AND d.revoked_at IS NULL AND d.expires_at > (now() AT TIME ZONE 'UTC')`, [digest(raw)])
+      WHERE s.token_hash=$1 AND s.expires_at > ${currentTime} AND a.status=1 AND d.revoked_at IS NULL AND d.expires_at > ${currentTime}`, [digest(raw)])
     if (!result.rowCount) throw new HttpError(401, '登录已过期，请重新登录')
     user = result.rows[0]
     const cfConfig = await (await import('./cloudflare-config.server')).getCloudflareConfig()
