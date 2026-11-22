@@ -9,6 +9,7 @@ for (const name of files) {
   let sql = await readFile(new URL(name, source), 'utf8')
   if (name === '009-monitor-wallet-event-flags.sql' || name === '011-platform-recharge-orders.sql') { const manualName = name.startsWith('009-') ? name : name; const body = await readFile(new URL(`manual/${manualName}`, output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
   if (name === '027-platform-plugin-lifecycle-modules.sql') sql = sql.replace(/ALTER TABLE t_platform_plugin_lifecycle ADD COLUMN(?: IF NOT EXISTS)? (?:disabled_at|enabled_at) timestamptz;\s*/gi, '')
+  if (name === '028-plugin-telegram-config-links.sql') { const body = await readFile(new URL('manual/028-plugin-telegram-config-links.sql', output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
   if (name === '026-platform-groups-plugin.sql') { const body = await readFile(new URL('manual/026-platform-groups-plugin.sql', output), 'utf8'); await writeFile(new URL(name, output), body.trim() + '\n'); continue }
   if (name === '025-platform-plugin-lifecycle.sql') sql = sql.replace("enabled_bot_ids integer[] NOT NULL DEFAULT '{}'", "enabled_bot_ids JSON NOT NULL DEFAULT ('[]')")
   if (name === '020-platform-telegram-ignored-updates.sql') { manual.push(name + ' (redundant for fresh MySQL schema; 006 will include ignored status)'); continue }

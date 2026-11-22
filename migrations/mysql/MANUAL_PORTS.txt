@@ -1,2 +1,1 @@
 020-platform-telegram-ignored-updates.sql (redundant for fresh MySQL schema; 006 will include ignored status)
-028-plugin-telegram-config-links.sql
