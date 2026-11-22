@@ -19,6 +19,7 @@ export function mysqlPlaceholders(sql: string, values: unknown[] = []): MysqlBou
     }
   }
   if (/\bRETURNING\b/i.test(sql) && !returning) throw new Error('mysql_returning_unsupported_statement')
+  sql = sql.replace(/\bILIKE\b/gi, 'LIKE').replace(/\bto_timestamp\(/gi, 'FROM_UNIXTIME(')
   const arrayParameters = new Set<number>()
   if (/\bON CONFLICT\b/i.test(sql)) {
     if (/\bDO NOTHING\s*;?$/i.test(sql)) {

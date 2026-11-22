@@ -55,3 +55,7 @@ test('MySQL adapter fails closed on CTE RETURNING forms that need a dialect-spec
 test('MySQL adapter duplicates bound values when PostgreSQL reuses a parameter', () => {
   assert.deepEqual(mysqlPlaceholders('SELECT $1,$1,$2', ['same','other']), { sql: 'SELECT ?,?,?', values: ['same','same','other'] })
 })
+
+test('MySQL adapter translates case-insensitive search and epoch timestamps', () => {
+  assert.deepEqual(mysqlPlaceholders('SELECT * FROM t WHERE name ILIKE $1 AND created_at>to_timestamp($2)', ['%foo%',1700000000]), { sql: 'SELECT * FROM t WHERE name LIKE ? AND created_at>FROM_UNIXTIME(?)', values: ['%foo%',1700000000] })
+})
