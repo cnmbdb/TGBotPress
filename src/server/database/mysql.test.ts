@@ -18,3 +18,10 @@ test('placeholder conversion rejects missing and unused values', () => {
   assert.throws(() => mysqlPlaceholders('SELECT $2', ['one']), /mysql_parameter_missing:2/)
   assert.throws(() => mysqlPlaceholders('SELECT $1', ['one', 'two']), /mysql_parameter_count_mismatch:1:2/)
 })
+
+test('MySQL adapter rewrites plugin target ANY membership to JSON containment', () => {
+  assert.deepEqual(mysqlPlaceholders("SELECT c.rid FROM t_telegram_bot_command c WHERE $1=ANY(platform_plugin_config_targets('command',c.bot_rid,c.rid,c.command,NULL))", ['transit']), {
+    sql: "SELECT c.rid FROM t_telegram_bot_command c WHERE JSON_CONTAINS(platform_plugin_config_targets('command',c.bot_rid,c.rid,c.command,NULL),JSON_QUOTE(CAST(? AS CHAR)))",
+    values: ['transit'],
+  })
+})

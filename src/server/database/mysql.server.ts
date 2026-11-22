@@ -6,6 +6,7 @@ export type MysqlConfig = { host: string; port: number; database: string; user: 
 /** Convert PostgreSQL positional placeholders while preserving quoted strings and comments. */
 export function mysqlPlaceholders(sql: string, values: unknown[] = []): { sql: string; values: unknown[] } {
   const arrayParameters = new Set<number>()
+  sql = sql.replace(/\$(\d+)\s*=\s*ANY\((platform_plugin_config_targets\([^)]*\))\)/g, (_match, position, targets) => `JSON_CONTAINS(${targets},JSON_QUOTE(CAST($${position} AS CHAR)))`)
   sql = sql.replace(/([\w.`]+)\s*=\s*ANY\(\$(\d+)::(?:integer|bigint|text|varchar)\[\]\)/gi, (_match, column, position) => { arrayParameters.add(Number(position) - 1); return `${column} IN ($${position})` })
   sql = sql.replace(/enabled_bot_ids\s*=\s*'\{\}'/gi, 'enabled_bot_ids=JSON_ARRAY()')
   let output = '', mapped: unknown[] = [], index = 0, mode: 'normal'|'single'|'double'|'backtick'|'line'|'block' = 'normal'
