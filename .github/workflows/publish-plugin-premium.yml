@@ -2,6 +2,12 @@ name: Publish Premium Plugin
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Set true to publish the current package version to npm
+        required: true
+        default: false
+        type: boolean
   push:
     tags:
       - 'plugin-premium-v*'
@@ -11,6 +17,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
