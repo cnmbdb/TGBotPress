@@ -11,9 +11,15 @@ export async function scaffoldPlugin({ directory, id, name, description = '' }) 
   const root = join(directory, `tgbotpress-plugin-${id}`)
   const manifest = createManifest({ id, name, description })
   await mkdir(join(root, 'src'), { recursive: true })
-  await writeFile(join(root, 'package.json'), JSON.stringify({ name: `@example/plugin-${id}`, version: manifest.version, type: 'module', exports: { '.': { types: './src/index.d.ts', import: './src/index.js' } }, files: ['src'], peerDependencies: { '@tgbotpress/plugin-sdk': '^0.1.0' } }, null, 2) + '\n')
+  await writeFile(join(root, 'package.json'), JSON.stringify({ name: `@example/plugin-${id}`, version: manifest.version, type: 'module', exports: { '.': { types: './src/index.d.ts', import: './src/index.js' } }, files: ['src'] }, null, 2) + '\n')
   await writeFile(join(root, 'src/index.js'), `export const manifest = ${JSON.stringify(manifest, null, 2)}\n\nexport const plugin = { manifest }\n`)
-  await writeFile(join(root, 'src/index.d.ts'), 'import type { TgbotpressPlugin } from "@tgbotpress/plugin-sdk"\nexport declare const manifest: TgbotpressPlugin["manifest"]\nexport declare const plugin: TgbotpressPlugin\n')
+  const declarations = `export type PluginManifest = { id:string; version:string; hostRange:string; sdkVersion:string; name:string; description?:string; dependencies?:string[]; menuRoutes?:string[]; apiRoutes?:string[]; tasks?:string[]; drainTasks?:string[]; configTypes?:Array<'command'|'keyboard'|'keyreply'|'keyreply_keyboard'> }
+export type PluginHost = { manifest:PluginManifest; state:()=>Promise<'active'|'draining'|'uninstalled'>; transition:(action:'install'|'disable'|'resume'|'uninstall')=>Promise<'active'|'draining'|'uninstalled'>; log:{info:(...values:unknown[])=>void;error:(...values:unknown[])=>void} }
+export type TgbotpressPlugin = { manifest:PluginManifest; activate?:(host:PluginHost)=>Promise<void>|void; deactivate?:(host:PluginHost)=>Promise<void>|void }
+export declare const manifest: PluginManifest
+export declare const plugin: TgbotpressPlugin
+`
+  await writeFile(join(root, 'src/index.d.ts'), declarations)
   return root
 }
 
