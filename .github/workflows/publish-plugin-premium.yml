@@ -1,0 +1,37 @@
+name: Publish Premium Plugin
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'plugin-premium-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          scope: '@tgbotpress'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile
+      - name: Check release tag
+        if: github.ref_type == 'tag'
+        run: test "$GITHUB_REF_NAME" = "plugin-premium-v$(node -p 'require("./packages/plugin-premium/package.json").version')"
+      - run: pnpm --dir packages/plugin-premium build
+      - run: pnpm --dir packages/plugin-premium typecheck
+      - run: pnpm --dir packages/plugin-premium pack --dry-run
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: npm publish --access public --ignore-scripts
+        working-directory: packages/plugin-premium
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,86 @@
+name: Premium Plugin CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/plugin-premium-ci.yml'
+      - '.github/workflows/publish-plugin-premium.yml'
+      - 'docs/plugin-development.md'
+      - 'legacy/000-legacy-schema.sql'
+      - 'migrations/**'
+      - 'package.json'
+      - 'packages/plugin-premium/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/migrate-production.mjs'
+      - 'scripts/migrate.ts'
+      - 'src/components/admin-shell.tsx'
+      - 'src/config/admin-navigation.ts'
+      - 'src/lib/navigation.ts'
+      - 'src/lib/premium-admin-runtime.tsx'
+      - 'src/plugins/catalog.ts'
+      - 'src/plugins/module-lifecycle.server.ts'
+      - 'src/plugins/plugin-config-links.server.ts'
+      - 'src/plugins/registry.server.ts'
+      - 'src/routes/api.premium-*.ts'
+      - 'src/routes/console.premium-*.tsx'
+      - 'src/server/platform-worker.server.ts'
+      - 'src/server/premium-*.server.ts'
+      - 'src/server/telegram-premium-purchases.server.ts'
+      - 'src/server/telegram-support-updates.server.ts'
+      - 'src/styles.css'
+      - 'tsconfig.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/plugin-premium-ci.yml'
+      - '.github/workflows/publish-plugin-premium.yml'
+      - 'docs/plugin-development.md'
+      - 'legacy/000-legacy-schema.sql'
+      - 'migrations/**'
+      - 'package.json'
+      - 'packages/plugin-premium/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'scripts/migrate-production.mjs'
+      - 'scripts/migrate.ts'
+      - 'src/components/admin-shell.tsx'
+      - 'src/config/admin-navigation.ts'
+      - 'src/lib/navigation.ts'
+      - 'src/lib/premium-admin-runtime.tsx'
+      - 'src/plugins/catalog.ts'
+      - 'src/plugins/module-lifecycle.server.ts'
+      - 'src/plugins/plugin-config-links.server.ts'
+      - 'src/plugins/registry.server.ts'
+      - 'src/routes/api.premium-*.ts'
+      - 'src/routes/console.premium-*.tsx'
+      - 'src/server/platform-worker.server.ts'
+      - 'src/server/premium-*.server.ts'
+      - 'src/server/telegram-premium-purchases.server.ts'
+      - 'src/server/telegram-support-updates.server.ts'
+      - 'src/styles.css'
+      - 'tsconfig.json'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir packages/plugin-premium build
+      - run: pnpm --dir packages/plugin-premium typecheck
+      - run: pnpm --dir packages/plugin-premium pack --dry-run
+      - run: pnpm typecheck
+      - run: pnpm build

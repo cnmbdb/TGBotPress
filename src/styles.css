@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../packages/plugin-premium/src";
+@source "../node_modules/@tgbotpress/plugin-premium/src";
 @custom-variant dark (&:is(.dark *));
 @theme inline {
   --color-background: var(--background); --color-foreground: var(--foreground);

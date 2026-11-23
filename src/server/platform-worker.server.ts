@@ -3,7 +3,7 @@ import { db } from './db.server'
 import { expireUnpaidOrders } from './cancel-unpaid-orders.server'
 import { refreshRealtimeTrxRates } from './transit-realtime-rate.server'
 import { syncTransitWalletUsdtTrades } from './transit-wallet-usdt-poll.server'
-import { syncPremiumWalletUsdtTrades } from './premium-wallet-usdt-poll.server'
+import { premiumWalletApiKeys } from './premium-wallet-usdt-poll.server'
 import { syncFmsWalletTrades } from './fms-wallet-trades-poll.server'
 import { syncEnergyWalletTrades } from './energy-wallet-trades-poll.server'
 import { syncEnergyCurrentBlock, syncEnergyMissedBlock } from './energy-block-monitor.server'
@@ -22,7 +22,6 @@ import { syncTrxEnergyTrades } from './trx-energy-trade-worker.server'
 import { syncQuickEnergyOrders } from './quick-energy-order-worker.server'
 import { syncAiEnergyOrders } from './ai-energy-order-worker.server'
 import { syncAiBishuOrders } from './ai-bishu-order-worker.server'
-import { sendPremiumTelegramNotifications } from './send-premium-telegram.server'
 import { syncTelegramMemberUpdates } from './telegram-member-updates.server'
 import { registeredGroupManagement as groupManagementPlugin } from '../plugins/registry.server'
 import { syncTelegramJoinUpdates } from './telegram-join-updates.server'
@@ -32,7 +31,8 @@ import { syncEnergySpecial } from './energy-special.server'
 import { syncRechargeOrders } from './recharge-order-worker.server'
 import { syncCollectionWallets } from './collection-wallet-worker.server'
 import { syncBindASendN } from './bindasendn-worker.server'
-import { syncPremiumFulfillment } from './premium-fulfillment-worker.server'
+import { premiumTonRuntime } from './premium-fulfillment-worker.server'
+import { createPremiumScheduledTasks } from '@tgbotpress/plugin-premium/tasks'
 import { runScheduledTasks, type ScheduledTask, type SchedulerDatabase, type SchedulerLogger } from './scheduler.server'
 import { pollNextTelegramBot } from './telegram-polling.server'
 import { pluginCatalog } from '../plugins/catalog'
@@ -54,6 +54,16 @@ export type PlatformWorkerOptions = {
 
 export function platformScheduledTasks(pool: WorkerDatabase, logger: SchedulerLogger = console, now: () => number = Date.now): ScheduledTask[] {
   let telegramPollingAfterBotRid = 0
+  const premiumTasks = Object.fromEntries(createPremiumScheduledTasks({
+    pool,
+    logger,
+    getWalletApiKeys: () => premiumWalletApiKeys(pool),
+    ...premiumTonRuntime,
+    walletPollingEnabled: process.env.PLATFORM_PREMIUM_WALLET_POLLING === 'true',
+    telegramActionsEnabled: process.env.PLATFORM_TELEGRAM_ACTIONS === 'true',
+    fulfillmentEnabled: process.env.PLATFORM_PREMIUM_FULFILLMENT_ACTIONS === 'true',
+    allowTelegramStars: process.env.PLATFORM_TELEGRAM_ACTIONS === 'true',
+  }).map(task => [task.name, task])) as Record<'premiumwalletusdttrade' | 'sendpremiumtgmessage' | 'tgpremium', ScheduledTask>
   const tasks: ScheduledTask[] = [
     {
       name: 'cancelunpaidorder',
@@ -70,11 +80,7 @@ export function platformScheduledTasks(pool: WorkerDatabase, logger: SchedulerLo
       intervalMs: 2_000,
       run: shouldContinue => syncTransitWalletUsdtTrades({ pool, logger, shouldContinue }),
     },
-    {
-      name: 'premiumwalletusdttrade',
-      intervalMs: 2_000,
-      run: shouldContinue => syncPremiumWalletUsdtTrades({ pool, logger, shouldContinue }),
-    },
+    premiumTasks.premiumwalletusdttrade,
     {
       name: 'getgmswallettrxusdttrade',
       intervalMs: 5_000,
@@ -173,11 +179,7 @@ export function platformScheduledTasks(pool: WorkerDatabase, logger: SchedulerLo
       intervalMs: 2_000,
       run: shouldContinue => sendEnergyTelegramNotifications({ pool, logger, shouldContinue }),
     },
-    {
-      name: 'sendpremiumtgmessage',
-      intervalMs: 2_000,
-      run: shouldContinue => sendPremiumTelegramNotifications({ pool, logger, shouldContinue }),
-    },
+    premiumTasks.sendpremiumtgmessage,
     {
       name: 'recoveryenergy',
       intervalMs: 60_000,
@@ -218,11 +220,7 @@ export function platformScheduledTasks(pool: WorkerDatabase, logger: SchedulerLo
       intervalMs: 3_000,
       run: shouldContinue => syncBindASendN({ pool, logger, shouldContinue, enabled: process.env.PLATFORM_BIND_ASENDN_ACTIONS === 'true' }),
     },
-    {
-      name: 'tgpremium',
-      intervalMs: 3_000,
-      run: shouldContinue => syncPremiumFulfillment({ pool, logger, shouldContinue, enabled: process.env.PLATFORM_PREMIUM_FULFILLMENT_ACTIONS === 'true' }),
-    },
+    premiumTasks.tgpremium,
     {
       name: 'telegramjoinupdates',
       intervalMs: 1_000,

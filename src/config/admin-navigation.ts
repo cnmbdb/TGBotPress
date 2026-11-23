@@ -1,3 +1,4 @@
+import { adminMenu as premiumAdminMenu } from '@tgbotpress/plugin-premium'
 // Generated from the original Blade navigation and Laravel route collection.
 // Keep names, order, paths and combined permission requirements aligned with the source.
 export type AdminMenuItem = { id: string; label: string; path: string; permissions: string[] }
@@ -271,49 +272,6 @@ export const adminNavigation: AdminMenuGroup[] = [
     ]
   },
   {
-    "id": "5",
-    "label": "会员管理",
-    "icon": "Gem",
-    "items": [
-      {
-        "id": "admin.premium.platform.index",
-        "label": "会员平台",
-        "path": "/admin/premium/platform/index",
-        "permissions": [
-          "会员管理",
-          "会员平台"
-        ]
-      },
-      {
-        "id": "admin.premium.package.index",
-        "label": "会员套餐",
-        "path": "/admin/premium/package/index",
-        "permissions": [
-          "会员管理",
-          "会员套餐"
-        ]
-      },
-      {
-        "id": "admin.premium.order.index",
-        "label": "会员订单",
-        "path": "/admin/premium/order/index",
-        "permissions": [
-          "会员管理",
-          "会员订单"
-        ]
-      },
-      {
-        "id": "admin.premium.trade.index",
-        "label": "会员交易",
-        "path": "/admin/premium/trade/index",
-        "permissions": [
-          "会员管理",
-          "会员交易"
-        ]
-      }
-    ]
-  },
-  {
     "id": "6",
     "label": "监控管理",
     "icon": "CircleCheck",
@@ -499,3 +457,6 @@ export const adminNavigation: AdminMenuGroup[] = [
     ]
   }
 ]
+
+const premiumMenuIndex = adminNavigation.findIndex(group => group.id === '6')
+adminNavigation.splice(premiumMenuIndex < 0 ? adminNavigation.length : premiumMenuIndex, 0, premiumAdminMenu)

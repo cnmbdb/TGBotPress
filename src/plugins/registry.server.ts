@@ -2,7 +2,8 @@ import { cloneProxyPlugin } from './cloneproxy/index.server'
 import { groupManagementPlugin } from './groups/index.server'
 import { pluginCatalog } from './catalog'
 
-const registeredModuleDescriptors = pluginCatalog.filter(plugin => ['transit','energy','premium','monitor','collection','shop'].includes(plugin.id)).map(plugin => ({ id: plugin.id, version: 1, manifest: plugin }))
+const customLifecyclePlugins = new Set<string>([cloneProxyPlugin.id, groupManagementPlugin.id])
+const registeredModuleDescriptors = pluginCatalog.filter(plugin => !customLifecyclePlugins.has(plugin.id)).map(plugin => ({ id: plugin.id, version: 1, manifest: plugin }))
 
 /** Built-in plugins are loaded once; duplicate IDs are rejected at startup. */
 export function createPluginRegistry<T extends { id: string }>(plugins: readonly T[]) {
