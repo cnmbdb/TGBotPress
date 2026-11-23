@@ -17,10 +17,12 @@ permissions:
 
 jobs:
   publish:
-    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    if: github.event_name != 'workflow_dispatch' || (inputs.publish == true && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 11.25.0
@@ -33,6 +35,9 @@ jobs:
       - name: Check release tag
         if: github.ref_type == 'tag'
         run: test "$GITHUB_REF_NAME" = "plugin-premium-v$(node -p 'require("./packages/plugin-premium/package.json").version')"
+      - name: Require release commit on main
+        if: github.ref_type == 'tag'
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       - run: pnpm --dir packages/plugin-premium build
       - run: pnpm --dir packages/plugin-premium typecheck
       - run: pnpm --dir packages/plugin-premium pack --dry-run
