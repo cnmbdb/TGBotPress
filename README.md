@@ -132,7 +132,7 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
 
 ## 插件开发
 
-TGBotPress 提供插件 SDK、模块生命周期和现有插件示例。可通过独立开发工具包 `@tgbotpress/devkit` 使用 CLI 脚手架、MCP 工具和 Agent Skill；安装与配置见[开发工具包说明](packages/devkit/README.md)。插件宿主接入、测试和市场发布流程见[插件开发文档](docs/plugin-development.md)。当前第三方插件的通用动态安装与隔离仍在开发中。
+TGBotPress 提供插件 SDK、模块生命周期和现有插件示例。可通过独立开发 MCP 包 `@tgbotpress/mcp` 使用 CLI 脚手架、MCP 工具和 Agent Skill；安装与配置见[MCP 包说明](packages/devkit/README.md)。插件宿主接入、测试和市场发布流程见[插件开发文档](docs/plugin-development.md)。当前第三方插件的通用动态安装与隔离仍在开发中。
 
 ## 源码开发与验证
 
