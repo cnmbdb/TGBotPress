@@ -33,7 +33,7 @@ on:
       - 'tsconfig.json'
   push:
     branches:
-      - main
+      - '**'
     paths:
       - '.github/workflows/plugin-premium-ci.yml'
       - '.github/workflows/publish-plugin-premium.yml'
