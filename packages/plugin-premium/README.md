@@ -83,3 +83,7 @@ export function PremiumPlatformsRoute() {
 ## 开发约定
 
 业务 TypeScript 源文件位于 `src/*.source.ts`，页面源文件位于 `src/admin-pages.*.tsx`。运行 `npm run build` 会生成包导出的 ESM `*.js` 和类型声明 `*.d.ts`；运行 `npm run typecheck` 检查包内源文件。发布工作流执行这两个命令后再打包。宿主适配器应继续注入所有涉及密钥、数据库、API key 和支付的能力。
+
+## 发布
+
+发布前先更新 `package.json` 的版本号，并将代码合并到 `main`。随后从 `main` 为该版本创建并推送标签，例如 `plugin-premium-v0.1.0`。GitHub Actions 会校验标签版本和提交是否包含在 `main`，再使用仓库 Secret `NPM_TOKEN` 发布到 npm。手动运行发布 workflow 也只能从 `main` 触发，并且需要显式把 `publish` 确认为 `true`。
