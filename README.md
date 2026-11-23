@@ -106,21 +106,33 @@ TGBotPress 是一个以 **基座 + 模块插件 + 插件市场** 为方向的 Te
 
 ## 部署教程
 
-根据服务器环境和数据库选择部署方式：
+先选择应用运行方式，再选择数据库和数据存储方式。每项都链接到对应教程或组合说明：
 
-| 应用部署方式 | 数据库组合 | 教程 |
+### 应用如何运行
+
+| 方式 | 适合场景 | 教程 |
 | --- | --- | --- |
-| VPS / 宝塔 Node 项目 | 本机或独立 PostgreSQL | [宝塔 Node 方式部署](docs/deployment/baota-node.md) |
-| VPS / 宝塔 Docker | PostgreSQL 容器及持久化数据卷 | [宝塔 Docker 方式部署](docs/deployment/baota-docker.md) |
-| Docker Compose | 同机 PostgreSQL 容器及持久化数据卷 | [Docker Compose 快速部署](docs/deployment/docker-compose.md) |
-| Node / Docker | 已有或托管 PostgreSQL | [数据库连接与组合](docs/deployment/databases.md) |
+| VPS / 宝塔 Node.js 项目 | 在服务器运行 Node.js 进程，连接独立数据库 | [宝塔 Node 部署](docs/deployment/baota-node.md) |
+| VPS / 宝塔 Docker | 通过宝塔管理应用容器，可搭配 Compose 数据库或外部数据库 | [宝塔 Docker 部署](docs/deployment/baota-docker.md) |
+| Docker Compose | 在 VPS 一次启动应用、PostgreSQL 和 Redis | [Docker Compose 部署](docs/deployment/docker-compose.md) |
+
+### 数据库和持久化怎么选
+
+| 组合 | 典型搭配 | 当前状态和说明 |
+| --- | --- | --- |
+| PostgreSQL 容器 + 数据卷 | Docker / Compose + 同机 PostgreSQL | 当前推荐；数据由 PostgreSQL 服务管理，数据卷用于持久化。见[数据库组合说明](docs/deployment/databases.md#postgresql-容器与数据卷) |
+| 外部或托管 PostgreSQL | 宝塔 Node 或 Docker + 独立 PostgreSQL | 可配置；确认网络、TLS、扩展和建表权限。见[连接参数及托管数据库](docs/deployment/databases.md#外部与托管-postgresql) |
+| MySQL / MariaDB | Node 或 Docker + MySQL 服务 | 接入开发中；当前代码已有部分适配，尚未完成全业务验收。见[数据库状态](docs/deployment/databases.md#mysql--mariadb) |
+| SQLite 文件 + 持久化目录 | 单机 Node 或挂载宿主机目录的容器 | 接入开发中；不能把文件放在临时容器层。见[SQLite 文件与 SQL 导入](docs/deployment/databases.md#sqlite-文件与-sql-文件) |
+| Cloudflare D1 | Cloudflare Workers + D1 绑定 | 目标部署方式仍在开发，不能当作 VPS 上的数据库地址使用。见[Cloudflare D1 与 Hyperdrive](docs/deployment/databases.md#cloudflare-d1-与-hyperdrive) |
+| SQL 备份文件 | 导入对应数据库 | SQL 文件是备份/迁移输入，不是可直接挂载运行的数据库。见[SQLite 文件与 SQL 导入](docs/deployment/databases.md#sqlite-文件与-sql-文件) |
 
 > [!IMPORTANT]
-> 当前基座依赖 PostgreSQL。SQLite 文件、MySQL、Cloudflare D1 和 Hyperdrive **尚未适配**，不能直接替换数据库；详情和适用边界见[数据库连接与组合](docs/deployment/databases.md)。
+> 只有 PostgreSQL 组合目前作为可部署方案提供。MySQL、SQLite 和 D1 的工作仍在推进；表格里的说明用于帮助选型，不代表完整业务已经通过验收。部署前请查看[数据库连接与组合](docs/deployment/databases.md)中的状态和限制。
 
 ## 插件开发
 
-TGBotPress 提供插件 SDK、模块生命周期和现有插件示例。开发、宿主接入、测试和市场上架的完整步骤见[插件开发文档](docs/plugin-development.md)。当前第三方插件的通用动态安装与隔离仍在开发中。
+TGBotPress 提供插件 SDK、模块生命周期和现有插件示例。可通过独立开发工具包 `@tgbotpress/devkit` 使用 CLI 脚手架、MCP 工具和 Agent Skill；安装与配置见[开发工具包说明](packages/devkit/README.md)。插件宿主接入、测试和市场发布流程见[插件开发文档](docs/plugin-development.md)。当前第三方插件的通用动态安装与隔离仍在开发中。
 
 ## 源码开发与验证
 
