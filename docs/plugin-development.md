@@ -127,14 +127,14 @@ plugin-example/
 对于支付、余额和钱包操作，应在同一事务内维护业务状态，并测试重复请求、进程中断和并发竞争。涉及外部副作用时还需验证重试不会造成重复发放或重复扣款。
 
 
-## 使用独立开发工具包
+## 使用独立开发 MCP 包
 
-可安装 `@tgbotpress/devkit` 获得命令行脚手架、MCP 服务和 Agent Skill：
+可安装 `@tgbotpress/mcp` 获得命令行脚手架、MCP 服务和 Agent Skill：
 
 ```sh
-npm install --global @tgbotpress/devkit
+npm install --global @tgbotpress/mcp
 tgbotpress plugin create --id hello-world --name "Hello World"
 tgbotpress skill install
 ```
 
-配置 MCP 客户端运行 `tgbotpress mcp`，可调用 `create_tgbotpress_plugin` 工具生成项目。完整参数、MCP 配置和限制见[开发工具包说明](../packages/devkit/README.md)。
+配置 MCP 客户端运行 `tgbotpress mcp`，可调用 `create_tgbotpress_plugin` 工具生成项目。完整参数、MCP 配置和限制见[MCP 包说明](../packages/devkit/README.md)。

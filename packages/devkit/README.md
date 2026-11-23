@@ -1,18 +1,18 @@
-# @tgbotpress/devkit
+# @tgbotpress/mcp
 
 CLI, MCP server, and agent skill for developing plugins against the TGBotPress SDK and host contract.
 
 ## Install and scaffold
 
 ```sh
-npm install --global @tgbotpress/devkit
+npm install --global @tgbotpress/mcp
 tgbotpress plugin create --id hello-world --name "Hello World" --description "Example plugin"
 cd tgbotpress-plugin-hello-world
 npm install
 npm pack --dry-run
 ```
 
-The command creates an ESM package with a manifest, root export, and declaration stub. Scaffolding includes the SDK contract types locally, so the generated package can be installed without a separately published SDK. Edit the generated package name to your npm scope before publishing. The repository workflow publishes this package when a `devkit-v*` tag is pushed; it requires an `NPM_TOKEN` repository secret with publish access to `@tgbotpress`. Scaffolding does not register functionality in a host.
+The command creates an ESM package with a manifest, root export, and declaration stub. Scaffolding includes the SDK contract types locally, so the generated package can be installed without a separately published SDK. Edit the generated package name to your npm scope before publishing. The repository workflow publishes this package when a `mcp-v*` tag is pushed; it requires an `NPM_TOKEN` repository secret with publish access to `@tgbotpress`. Scaffolding does not register functionality in a host.
 
 ## MCP server
 
@@ -21,7 +21,7 @@ Run `tgbotpress mcp` as an stdio MCP server. Example client configuration:
 ```json
 {
   "mcpServers": {
-    "tgbotpress-devkit": {
+    "tgbotpress-mcp": {
       "command": "tgbotpress",
       "args": ["mcp"]
     }
