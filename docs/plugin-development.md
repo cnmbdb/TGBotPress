@@ -39,6 +39,12 @@ export const plugin = { manifest }
 
 `id`、`version`、`hostRange`、`sdkVersion` 和 `name` 为必填字段；可选字段还包括 `description`。`configTypes` 可包含 `command`、`keyboard`、`keyreply` 和 `keyreply_keyboard`。`plugin` 可实现 `activate(host)` 和 `deactivate(host)`；当前 SDK 的 `PluginHost` 提供 manifest、状态查询、状态转换和日志接口。上述示例只说明数据结构，不能单独实现宿主接入。
 
+### 内置会员 npm 包
+
+`packages/plugin-premium` 是会员模块的 npm 包示例。它导出 manifest、Telegram 套餐购买、USDT 钱包轮询、Fragment/TON 与 Telegram Stars 履约、会员通知及订单/交易管理 API。Stars 开通使用 Bot API 的 `giftPremiumSubscription`；官方接口只接受目标用户的数值 `user_id`，Stars 价格固定为 3/6/12 个月 1000/1500/2500。宿主通过 `src/server/` 适配器注入数据库、身份/权限、密钥解密、TON 签名器、API key 和功能开关。会员平台/套餐管理 API、TanStack 页面路由仍由宿主注册。包内 TypeScript 源文件以 `*.source.ts` 保存，发布入口为对应的 ESM `*.js` 和类型声明 `*.d.ts`。
+
+订单/交易 API、后台任务由宿主路由和调度器接入，管理身份与权限由宿主注入。会员平台/套餐管理 API 和后台页面仍位于宿主。**仅安装这个 npm 包不会自动增加页面或启动任务**；完整的第三方动态路由、安装隔离与任务权限仍未实现。
+
 插件间依赖写在 manifest 的 `dependencies`；npm 依赖写在包的 `package.json`。通过参数注入宿主能力，避免直接依赖宿主私有源码。涉及数据库、鉴权、Telegram 和外部服务时，先明确接口与数据归属。
 
 ## 开发与集成流程
@@ -119,3 +125,16 @@ plugin-example/
 5. 确认 npm 包已在目标 registry 发布且可被预期用户安装后，再通过后台填写市场展示资料。ETS 上架、npm 发布与宿主安装互相独立。
 
 对于支付、余额和钱包操作，应在同一事务内维护业务状态，并测试重复请求、进程中断和并发竞争。涉及外部副作用时还需验证重试不会造成重复发放或重复扣款。
+
+
+## 使用独立开发工具包
+
+可安装 `@tgbotpress/devkit` 获得命令行脚手架、MCP 服务和 Agent Skill：
+
+```sh
+npm install --global @tgbotpress/devkit
+tgbotpress plugin create --id hello-world --name "Hello World"
+tgbotpress skill install
+```
+
+配置 MCP 客户端运行 `tgbotpress mcp`，可调用 `create_tgbotpress_plugin` 工具生成项目。完整参数、MCP 配置和限制见[开发工具包说明](../packages/devkit/README.md)。
