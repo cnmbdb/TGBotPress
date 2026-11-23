@@ -6,11 +6,17 @@ export type PluginConfigType='command'|'keyboard'|'keyreply'|'keyreply_keyboard'
 type ConfigRow={rid:number;bot_rid?:number;command?:string;keyboard_name?:string;monitor_word?:string;opt_type?:number}
 
 function automaticPluginTargets(type:PluginConfigType,name:string,opt:number):string[]{
-  if(type==='command')return ({trx:['transit'],z0:['transit'],buyenergy:['energy'],buypremium:['premium']} as Record<string,string[]>)[name.toLowerCase()]??[]
+  const pluginOwnedTargets=pluginCatalog.flatMap(plugin=>{
+    const links=(plugin as typeof plugin & {automaticConfigLinks?:{commands?:Record<string,string[]>;keyreplyOptions?:Record<number|string,string[]>}}).automaticConfigLinks
+    if(type==='command')return links?.commands?.[name.toLowerCase()]??[]
+    if(type==='keyreply'||type==='keyreply_keyboard')return links?.keyreplyOptions?.[opt]??[]
+    return []
+  })
+  if(type==='command')return [...(({trx:['transit'],z0:['transit'],buyenergy:['energy']} as Record<string,string[]>)[name.toLowerCase()]??[]),...pluginOwnedTargets]
   if(type==='keyboard')return name.toLowerCase().includes('克隆/代理')?['cloneproxy']:[]
   if(type==='keyreply'||type==='keyreply_keyboard'){
-    const ids=opt===3||opt===10||opt===11?['energy']:opt===4?['premium']:opt===6?['monitor']:opt===7?['shop']:opt===9?['transit']:opt===8?['transit','energy','premium']:opt===1&&name.toLowerCase().includes('克隆/代理')?['cloneproxy']:[]
-    return ids
+    const ids=opt===3||opt===10||opt===11?['energy']:opt===6?['monitor']:opt===7?['shop']:opt===9?['transit']:opt===8?['transit','energy']:opt===1&&name.toLowerCase().includes('克隆/代理')?['cloneproxy']:[]
+    return [...ids,...pluginOwnedTargets]
   }
   return []
 }

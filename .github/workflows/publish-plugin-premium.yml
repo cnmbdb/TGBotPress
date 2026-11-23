@@ -1,0 +1,49 @@
+name: Publish Premium Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Set true to publish the current package version to npm
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'plugin-premium-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.event_name != 'workflow_dispatch' || (inputs.publish == true && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          scope: '@tgbotpress'
+      - run: pnpm install --frozen-lockfile
+      - name: Check release tag
+        if: github.ref_type == 'tag'
+        run: test "$GITHUB_REF_NAME" = "plugin-premium-v$(node -p 'require("./packages/plugin-premium/package.json").version')"
+      - name: Require release commit on main
+        if: github.ref_type == 'tag'
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - run: pnpm --dir packages/plugin-premium build
+      - run: pnpm --dir packages/plugin-premium typecheck
+      - run: pnpm --dir packages/plugin-premium pack --dry-run
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: npm publish --access public --ignore-scripts
+        working-directory: packages/plugin-premium
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

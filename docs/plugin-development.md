@@ -41,16 +41,16 @@ export const plugin = { manifest }
 
 ### 内置会员 npm 包
 
-`packages/plugin-premium` 是会员模块的 npm 包示例。它导出 manifest、Telegram 套餐购买、USDT 钱包轮询、Fragment/TON 与 Telegram Stars 履约、会员通知及订单/交易管理 API。Stars 开通使用 Bot API 的 `giftPremiumSubscription`；官方接口只接受目标用户的数值 `user_id`，Stars 价格固定为 3/6/12 个月 1000/1500/2500。宿主通过 `src/server/` 适配器注入数据库、身份/权限、密钥解密、TON 签名器、API key 和功能开关。会员平台/套餐管理 API、TanStack 页面路由仍由宿主注册。包内 TypeScript 源文件以 `*.source.ts` 保存，发布入口为对应的 ESM `*.js` 和类型声明 `*.d.ts`。
+`packages/plugin-premium` 是会员模块的 npm 包示例。它导出 manifest、Telegram 套餐购买及订单回调、USDT 钱包轮询、Fragment/TON 与 Telegram Stars 履约、会员通知、后台 API、后台页面组件和 `./tasks` 调度任务定义。Stars 开通使用 Bot API 的 `giftPremiumSubscription`；官方接口只接受目标用户的数值 `user_id`，机器人履约成本固定为 3/6/12 个月 1000/1500/2500 Stars，购买者仍按套餐设置支付 USDT。宿主通过适配器注入数据库、身份/权限、密钥解密、TON 签名器、API key 和媒体存储等能力。页面主体由包提供；TanStack 路由仍需宿主在构建时挂载，并注入后台 shell 与 UI 组件。会员专属 PostgreSQL 表及增量迁移放在包的 `migrations/postgres/`，宿主账号、机器人和会话表仍由平台核心拥有；迁移器只发现仓库内插件和宿主 `package.json` 明确声明的 `@tgbotpress/plugin-*` 依赖。包内服务端 TypeScript 源文件以 `*.source.ts` 保存，后台页面以 `admin-pages.*.tsx` 保存；使用 `npm run build` 生成发布用的 ESM `*.js` 和类型声明 `*.d.ts`，使用 `npm run typecheck` 检查包源码。
 
-订单/交易 API、后台任务由宿主路由和调度器接入，管理身份与权限由宿主注入。会员平台/套餐管理 API 和后台页面仍位于宿主。**仅安装这个 npm 包不会自动增加页面或启动任务**；完整的第三方动态路由、安装隔离与任务权限仍未实现。
+订单/交易/平台/套餐 API 由宿主静态路由转接到插件包，后台任务由宿主调度器使用包内任务定义；管理身份与权限由宿主注入。会员后台页面组件由包提供，宿主静态路由负责挂载并注入 shell/UI runtime。**仅安装这个 npm 包不会自动注册页面或启动任务**；完整的第三方动态路由、安装隔离与任务权限仍未实现。
 
 插件间依赖写在 manifest 的 `dependencies`；npm 依赖写在包的 `package.json`。通过参数注入宿主能力，避免直接依赖宿主私有源码。涉及数据库、鉴权、Telegram 和外部服务时，先明确接口与数据归属。
 
 ## 开发与集成流程
 
 1. 从 `src/plugins/catalog.ts` 和 `src/plugins/registry.server.ts` 确定模块及接入点，追踪页面、API、权限、worker、Telegram 更新、数据库表和测试。内置模块参考 `packages/plugin-*`。
-2. 在插件包内实现功能，定义公开入口和类型，并通过宿主适配器接入。修改 TypeScript 源码后，确保包中提交的 JavaScript 和声明文件与源码一致。
+2. 在插件包内实现功能，定义公开入口和类型，并通过宿主适配器接入。插件包执行 `npm run build` 生成提交的 JavaScript 和声明文件，再执行 `npm run typecheck` 检查源码。
 3. 显式接入菜单、服务端 API 和任务；服务端必须检查权限及插件状态，隐藏菜单不能代替鉴权。对 Telegram 配置关联，参考 `src/plugins/plugin-config-links.server.ts`。
 4. 在隔离数据库和模拟外部服务中验证正常、失败、重复执行和并发路径。支付、钱包和订单要保留事务、幂等与恢复语义。
 5. 在插件目录执行 `npm pack --dry-run` 检查包内容，再在干净消费项目中安装产物及其 peer dependencies，验证公开入口和类型。另通过宿主真实入口验证插件行为；打包成功不代表可以动态安装。

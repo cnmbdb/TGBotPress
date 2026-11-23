@@ -15,7 +15,7 @@ import { telegramTradeStatisticsClaimPredicate, telegramTradeStatisticsMessage }
 import { handleTelegramAdminActivation, telegramAdminActivationClaimPredicate } from './telegram-admin-activation.server'
 import { registeredCloneProxy as cloneProxyPlugin } from '../plugins/registry.server'
 const { handleToken: handleCloneProxyTokenUpdate, handleUpdate: handleTelegramCloneProxyUpdate, claimPredicate: telegramCloneProxyClaimPredicate } = cloneProxyPlugin.telegram
-import { handleTelegramPremiumPackageCallback, handleTelegramPremiumUsernameReply, premiumPackageCallbackClaimPredicate, premiumUsernameReplyClaimPredicate } from './telegram-premium-purchases.server'
+import { handlePremiumTelegramCallback, handleTelegramPremiumUsernameReply, isPremiumCallbackUpdate, isPremiumUsernameReplyCandidate, isPremiumUsernameReplyForPrompt, premiumCancelUnpaidClaimPredicate, premiumChooseAgainClaimPredicate, premiumPackageCallbackClaimPredicate, premiumUsernameReplyClaimPredicate, premiumWalletPayClaimPredicate } from './telegram-premium-purchases.server'
 import { DISABLED_SECRET_COMMAND_REPLY, DISABLED_SECRET_COMMAND_PREFIXES, isDisabledSensitiveTelegramCommand } from './telegram-disabled-secret-commands.server'
 
 type Database = Pick<Pool, 'query'>
@@ -195,29 +195,6 @@ const trusteeshipCancelRechargeCallbackPredicate = [
   "AND EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(u.update_body #> '{callback_query,message,reply_markup,inline_keyboard}','[]'::jsonb)) AS keyboard_row(row_json) CROSS JOIN LATERAL jsonb_array_elements(keyboard_row.row_json) AS button(button_json) WHERE button.button_json->>'callback_data'=u.update_body #>> '{callback_query,data}')",
   "AND EXISTS (SELECT 1 FROM t_telegram_bot_keyreply kr WHERE kr.bot_rid=u.bot_rid AND kr.status=0 AND kr.opt_type=11)",
 ].join('\n')
-const premiumWalletPayCallbackPredicate = [
-  "u.update_body ? 'callback_query'",
-  "AND u.update_body #>> '{callback_query,message,chat,type}'='private'",
-  "AND u.update_body #>> '{callback_query,message,chat,id}'=u.update_body #>> '{callback_query,from,id}'",
-  "AND COALESCE(u.update_body #>> '{callback_query,from,is_bot}','false')<>'true'",
-  "AND u.update_body #>> '{callback_query,data}' ~ '^tgpremiumwalletpay_[1-9][0-9]{0,9}$'",
-  "AND EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(u.update_body #> '{callback_query,message,reply_markup,inline_keyboard}','[]'::jsonb)) AS keyboard_row(row_json) CROSS JOIN LATERAL jsonb_array_elements(keyboard_row.row_json) AS button(button_json) WHERE button.button_json->>'callback_data'=u.update_body #>> '{callback_query,data}')",
-].join('\n')
-const premiumCancelUnpaidCallbackPredicate = [
-  "u.update_body ? 'callback_query' AND u.update_body #>> '{callback_query,message,chat,type}'='private'",
-  "AND u.update_body #>> '{callback_query,message,chat,id}'=u.update_body #>> '{callback_query,from,id}'",
-  "AND COALESCE(u.update_body #>> '{callback_query,from,is_bot}','false')<>'true'",
-  "AND u.update_body #>> '{callback_query,data}'='cancelpremiumunpaid'",
-  "AND EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(u.update_body #> '{callback_query,message,reply_markup,inline_keyboard}','[]'::jsonb)) AS keyboard_row(row_json) CROSS JOIN LATERAL jsonb_array_elements(keyboard_row.row_json) AS button(button_json) WHERE button.button_json->>'callback_data'=u.update_body #>> '{callback_query,data}')",
-].join('\n')
-const premiumChooseAgainCallbackPredicate = [
-  "u.update_body ? 'callback_query' AND u.update_body #>> '{callback_query,message,chat,type}' IN ('private','group','supergroup')",
-  "AND (u.update_body #>> '{callback_query,message,chat,type}'<>'private' OR u.update_body #>> '{callback_query,message,chat,id}'=u.update_body #>> '{callback_query,from,id}')",
-  "AND COALESCE(u.update_body #>> '{callback_query,from,is_bot}','false')<>'true'",
-  "AND u.update_body #>> '{callback_query,data}'='重新选择套餐premium'",
-  "AND EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(u.update_body #> '{callback_query,message,reply_markup,inline_keyboard}','[]'::jsonb)) AS keyboard_row(row_json) CROSS JOIN LATERAL jsonb_array_elements(keyboard_row.row_json) AS button(button_json) WHERE button.button_json->>'callback_data'=u.update_body #>> '{callback_query,data}')",
-  "AND EXISTS (SELECT 1 FROM t_telegram_bot_keyreply kr WHERE kr.bot_rid=u.bot_rid AND kr.status=0 AND kr.opt_type=4)",
-].join('\n')
 const legacyEnergyFeeInfoCallbackPredicate = [
   "u.update_body ? 'callback_query' AND u.update_body #>> '{callback_query,message,chat,type}' IN ('private','group','supergroup')",
   "AND (u.update_body #>> '{callback_query,message,chat,type}'<>'private' OR u.update_body #>> '{callback_query,message,chat,id}'=u.update_body #>> '{callback_query,from,id}')",
@@ -353,7 +330,7 @@ const cloneProxyTokenClaimPredicate = [
   " AND ((w.master_bot_rid IS NOT NULL AND w.clone_proxy_order_rid=o.rid AND w.consumed_at IS NULL AND w.expires_at>now())",
   " OR ((w.master_bot_rid IS NULL OR (w.consumed_at IS NULL AND w.expires_at<=now())) AND trim(COALESCE(u.update_body #>> '{message,text}','')) ~ '^\\d{6,12}:[A-Za-z0-9_-]{20,}$')))",
 ].join('\n')
-const baseOtherClaimablePredicate = `(${disabledSecretMessagePredicate}) OR (${disabledSecretCallbackPredicate}) OR (${cloneProxyTokenClaimPredicate}) OR (${telegramExchangeRateClaimPredicate}) OR (${telegramEnergyBishuBindClaimPredicate}) OR (${telegramTradeStatisticsClaimPredicate}) OR (${telegramAdminActivationClaimPredicate}) OR (c.support_enabled=true AND (${supportCandidatePredicate})) OR (${verificationStartPredicate}) OR (${privateStartPredicate}) OR (${privateSharedIdPredicate}) OR (${bindASendNCallbackPredicate}) OR (${privateWalletBindCallbackPredicate}) OR (${privateWalletAddressReplyPredicate}) OR (${privateEnergyBishuReplyPredicate}) OR (${monitorWalletCallbackPredicate}) OR (${monitorWalletReplyPredicate}) OR (${bindASendNAddressReplyPredicate}) OR (${privateTronAddressPredicate}) OR (${privateEvmAddressPredicate}) OR (${privateBishuDirectPurchasePredicate}) OR (${privateTronHistoryCallbackPredicate}) OR (${privateTronApprovalCommandPredicate}) OR (${privateTronApprovalCallbackPredicate}) OR (${privateOkxC2cFilterCallbackPredicate}) OR (${privateEnergyBishuCallbackPredicate}) OR (${energyBishuPackageCallbackPredicate}) OR (${energyBalancePurchaseClaimPredicate}) OR (${energyBalancePurchaseReplyClaimPredicate}) OR (${trusteeshipMyAddressCallbackPredicate}) OR (${trusteeshipAddAddressCallbackPredicate}) OR (${trusteeshipDeleteAddressCallbackPredicate}) OR (${trusteeshipEnergySettingsCallbackPredicate}) OR (${trusteeshipCancelRechargeCallbackPredicate}) OR (${premiumWalletPayCallbackPredicate}) OR (${premiumCancelUnpaidCallbackPredicate}) OR (${premiumChooseAgainCallbackPredicate}) OR (${legacyEnergyFeeInfoCallbackPredicate}) OR (${energyPlatformPackageCallbackPredicate}) OR (${privateGoodsPurchaseCallbackPredicate}) OR (${privateGoodsSelectionCallbackPredicate}) OR (${privateGoodsPageCallbackPredicate}) OR (${trusteeshipRechargeCallbackPredicate}) OR (${trusteeshipSwapTrxCallbackPredicate}) OR (${trusteeshipMenuCallbackPredicate}) OR (${privateEnergyBishuToggleCallbackPredicate})`
+const baseOtherClaimablePredicate = `(${disabledSecretMessagePredicate}) OR (${disabledSecretCallbackPredicate}) OR (${cloneProxyTokenClaimPredicate}) OR (${telegramExchangeRateClaimPredicate}) OR (${telegramEnergyBishuBindClaimPredicate}) OR (${telegramTradeStatisticsClaimPredicate}) OR (${telegramAdminActivationClaimPredicate}) OR (c.support_enabled=true AND (${supportCandidatePredicate})) OR (${verificationStartPredicate}) OR (${privateStartPredicate}) OR (${privateSharedIdPredicate}) OR (${bindASendNCallbackPredicate}) OR (${privateWalletBindCallbackPredicate}) OR (${privateWalletAddressReplyPredicate}) OR (${privateEnergyBishuReplyPredicate}) OR (${monitorWalletCallbackPredicate}) OR (${monitorWalletReplyPredicate}) OR (${bindASendNAddressReplyPredicate}) OR (${privateTronAddressPredicate}) OR (${privateEvmAddressPredicate}) OR (${privateBishuDirectPurchasePredicate}) OR (${privateTronHistoryCallbackPredicate}) OR (${privateTronApprovalCommandPredicate}) OR (${privateTronApprovalCallbackPredicate}) OR (${privateOkxC2cFilterCallbackPredicate}) OR (${privateEnergyBishuCallbackPredicate}) OR (${energyBishuPackageCallbackPredicate}) OR (${energyBalancePurchaseClaimPredicate}) OR (${energyBalancePurchaseReplyClaimPredicate}) OR (${trusteeshipMyAddressCallbackPredicate}) OR (${trusteeshipAddAddressCallbackPredicate}) OR (${trusteeshipDeleteAddressCallbackPredicate}) OR (${trusteeshipEnergySettingsCallbackPredicate}) OR (${trusteeshipCancelRechargeCallbackPredicate}) OR (${premiumWalletPayClaimPredicate}) OR (${premiumCancelUnpaidClaimPredicate}) OR (${premiumChooseAgainClaimPredicate}) OR (${legacyEnergyFeeInfoCallbackPredicate}) OR (${energyPlatformPackageCallbackPredicate}) OR (${privateGoodsPurchaseCallbackPredicate}) OR (${privateGoodsSelectionCallbackPredicate}) OR (${privateGoodsPageCallbackPredicate}) OR (${trusteeshipRechargeCallbackPredicate}) OR (${trusteeshipSwapTrxCallbackPredicate}) OR (${trusteeshipMenuCallbackPredicate}) OR (${privateEnergyBishuToggleCallbackPredicate})`
 const otherClaimablePredicate = `(${baseOtherClaimablePredicate}) OR (${telegramCloneProxyClaimPredicate}) OR (${premiumPackageCallbackClaimPredicate})`
 const claimablePredicate = `${otherClaimablePredicate} OR (${privateCalculatorPredicate}) OR (${telegramKeyreplyClaimPredicate})`
 const editedPrivateCandidatePredicate = [
@@ -374,8 +351,7 @@ export async function telegramSupportUpdateClaimable(pool: Database, botRid: num
   const message = (update.message ?? update.edited_message) as Message | undefined
   const isCalculator = !editedMessage && message?.chat?.type === 'private' && !message.from?.is_bot && telegramCalculatorReply(textOf(message)) !== null
   const isKeyreply = !editedMessage && !isCalculator && message?.chat?.type === 'private' && !message.from?.is_bot && await telegramKeyreplyClaimable(pool, botRid, update)
-  const text = typeof message?.text === 'string' ? message.text.trim() : ''
-  const isPremiumUsernameReply = !editedMessage && message?.chat?.type === 'private' && !message.from?.is_bot && text.length >= 4 && text.startsWith('@')
+  const isPremiumUsernameReply = !editedMessage && isPremiumUsernameReplyCandidate(update as Update['update_body'])
   const predicate = editedMessage ? editedClaimablePredicate : isPremiumUsernameReply ? `(${otherClaimablePredicate}) OR (${premiumUsernameReplyClaimPredicate})` : isCalculator || isKeyreply ? claimablePredicate : otherClaimablePredicate
   const result = await pool.query<{ claimable: boolean }>(`SELECT EXISTS (
     SELECT 1 FROM t_telegram_bot b
@@ -404,18 +380,17 @@ async function claim(pool: Database, owner: string, limit: number): Promise<Upda
 async function supportPluginForUpdate(pool: Database, update: Update['update_body'], botRid: number): Promise<ManagedModuleId | null> {
   if (energyBalancePurchaseCallback(update) || energyBishuPackageCallback(update) || trusteeshipMenuCallback(update) || bindASendNCallback(update) || privateEnergyBishuCallback(update) || privateEnergyBishuBindCallback(update) || privateEnergyBishuAddCallback(update) || privateEnergyBishuSearchCallback(update) || privateEnergyBishuToggleCallback(update) || trusteeshipMyAddressCallback(update) || trusteeshipAddAddressCallback(update) || trusteeshipDeleteAddressCallback(update) || trusteeshipEnergySettingsCallback(update) || trusteeshipCancelRechargeCallback(update) || trusteeshipRechargeCallback(update) || trusteeshipSwapTrxCallback(update) || energyPlatformPackageCallback(update) || legacyEnergyFeeInfoCallback(update)) return 'energy'
   if (monitorWalletCallback(update)) return 'monitor'
-  if (premiumWalletPayCallback(update) || premiumCancelUnpaidCallback(update) || premiumChooseAgainCallback(update) || /^premium_[0-9a-f]{32}$/iu.test(String(update.callback_query?.data ?? ''))) return 'premium'
+  if (isPremiumCallbackUpdate(update)) return 'premium'
   if (privateGoodsPageCallback(update) || privateGoodsSelectionCallback(update) || privateGoodsPurchaseCallback(update)) return 'shop'
   if (privateWalletBindCallback(update)) return 'transit'
   const message=update.message
   if(message?.chat?.type==='private' && /^(添加笔数|增加笔数)(?:\s|$)/u.test(String(message.text??'').trim()))return 'energy'
   if(message?.chat?.type==='private'&&message.reply_to_message?.message_id!=null){
-    const state=await pool.query<{premium:boolean;energy:boolean;transit:boolean;monitor:boolean}>(`SELECT
-      EXISTS(SELECT 1 FROM t_platform_telegram_conversation_state WHERE bot_rid=$1 AND chat_id::text=$2 AND user_id::text=$3 AND state='premium_purchase_username' AND expires_at>now() AND prompt_message_id::text=$4) AS premium,
+    if(await isPremiumUsernameReplyForPrompt(pool,botRid,update))return 'premium'
+    const state=await pool.query<{energy:boolean;transit:boolean;monitor:boolean}>(`SELECT
       EXISTS(SELECT 1 FROM t_platform_telegram_conversation_state WHERE bot_rid=$1 AND chat_id::text=$2 AND user_id::text=$3 AND state IN ('bindA_address','bishu_balance_query','bishu_bind_notice','bishu_add_address','bishu_add_count','trusteeship_add_address','trusteeship_delete_address','trusteeship_usdt_to_trx') AND expires_at>now() AND prompt_message_id::text=$4) AS energy,
       EXISTS(SELECT 1 FROM t_platform_telegram_conversation_state WHERE bot_rid=$1 AND chat_id::text=$2 AND user_id::text=$3 AND state='wallet_address' AND expires_at>now() AND prompt_message_id::text=$4) AS transit,
       EXISTS(SELECT 1 FROM t_platform_telegram_conversation_state WHERE bot_rid=$1 AND chat_id::text=$2 AND user_id::text=$3 AND state IN ('monitor_add_address','monitor_delete_address','monitor_update_comment') AND expires_at>now() AND prompt_message_id::text=$4) AS monitor`,[botRid,String(message.chat.id),String(message.from?.id??''),String(message.reply_to_message.message_id)])
-    if(state.rows[0]?.premium)return 'premium'
     if(state.rows[0]?.energy)return 'energy'
     if(state.rows[0]?.transit)return 'transit'
     if(state.rows[0]?.monitor)return 'monitor'
@@ -614,41 +589,6 @@ function trusteeshipCancelRechargeCallback(update: Update['update_body']) {
   if (!message || message.chat?.type !== 'private' || !/^\d{1,20}$/u.test(chatId) || userId !== chatId || callback?.from?.is_bot || data !== 'cancelaitrusteeshiprechargeunpaid') return null
   if (!Array.isArray(keyboard) || !keyboard.some((row: unknown) => Array.isArray(row) && row.some((button: any) => button?.callback_data === data))) return null
   return { callback, chatId, userId }
-}
-function premiumWalletPayCallback(update: Update['update_body']) {
-  const callback = update?.callback_query
-  const message = callback?.message
-  const chatId = String(message?.chat?.id ?? '')
-  const userId = String(callback?.from?.id ?? '')
-  const data = String(callback?.data ?? '')
-  const keyboard = message?.reply_markup?.inline_keyboard
-  const match = /^tgpremiumwalletpay_([1-9][0-9]{0,9})$/u.exec(data)
-  if (!message || message.chat?.type !== 'private' || !/^\d{1,20}$/u.test(chatId) || userId !== chatId || callback?.from?.is_bot || !match) return null
-  if (!Array.isArray(keyboard) || !keyboard.some((row: unknown) => Array.isArray(row) && row.some((button: any) => button?.callback_data === data))) return null
-  return { callback, chatId, orderRid: Number(match[1]) }
-}
-function premiumCancelUnpaidCallback(update: Update['update_body']) {
-  const callback = update?.callback_query
-  const message = callback?.message
-  const chatId = String(message?.chat?.id ?? '')
-  const userId = String(callback?.from?.id ?? '')
-  const data = String(callback?.data ?? '')
-  const keyboard = message?.reply_markup?.inline_keyboard
-  if (!message || message.chat?.type !== 'private' || !/^\d{1,20}$/u.test(chatId) || userId !== chatId || callback?.from?.is_bot || data !== 'cancelpremiumunpaid') return null
-  if (!Array.isArray(keyboard) || !keyboard.some((row: unknown) => Array.isArray(row) && row.some((button: any) => button?.callback_data === data))) return null
-  return { callback, chatId, userId }
-}
-function premiumChooseAgainCallback(update: Update['update_body']) {
-  const callback = update?.callback_query
-  const message = callback?.message
-  const chatType = message?.chat?.type
-  const chatId = String(message?.chat?.id ?? '')
-  const userId = String(callback?.from?.id ?? '')
-  const data = String(callback?.data ?? '')
-  const keyboard = message?.reply_markup?.inline_keyboard
-  if (!message || !['private', 'group', 'supergroup'].includes(chatType ?? '') || !/^-?\d{1,20}$/u.test(chatId) || !/^\d{1,20}$/u.test(userId) || (chatType === 'private' && userId !== chatId) || callback?.from?.is_bot || data !== '重新选择套餐premium') return null
-  if (!Array.isArray(keyboard) || !keyboard.some((row: unknown) => Array.isArray(row) && row.some((button: any) => button?.callback_data === data))) return null
-  return { callback }
 }
 function legacyEnergyFeeInfoCallback(update: Update['update_body']) {
   const callback = update?.callback_query
@@ -1665,112 +1605,6 @@ async function handleTrusteeshipCancelRechargeCallback(pool: Database, fetcher: 
     allow_sending_without_reply: true,
   })
   if (!sent.ok) throw new Error('trusteeship_cancel_recharge_reply_failed')
-  return true
-}
-async function handlePremiumWalletPayCallback(pool: Database, fetcher: typeof fetch, botRid: number, update: Update['update_body']) {
-  const selected = premiumWalletPayCallback(update)
-  if (!selected) return false
-  const token = await botTokenFor(pool, botRid)
-  if (selected.callback.id != null) await tg(fetcher, token, 'answerCallbackQuery', { callback_query_id: String(selected.callback.id) })
-
-  const client = await (pool as Pool).connect()
-  let outcome: 'not_pending' | 'insufficient' | 'paid' = 'not_pending'
-  let premiumUsername = '', packageMonth = ''
-  try {
-    await client.query('BEGIN')
-    const order = await client.query<{ need_pay_usdt: string; premium_tg_username: string | null; premium_package_month: number | string | null }>(
-      'SELECT need_pay_usdt::text,premium_tg_username,premium_package_month FROM t_premium_platform_order WHERE rid=$1 AND bot_rid=$2 AND buy_tg_uid=$3 AND status=0 FOR UPDATE',
-      [selected.orderRid, botRid, selected.chatId],
-    )
-    if (order.rows[0]) {
-      const amountText = String(order.rows[0].need_pay_usdt ?? '')
-      const amount = exactDecimal(amountText)
-      if (amount && amount.units > 0n && /^\d{1,20}(?:\.\d{1,6})?$/u.test(amountText)) {
-        const user = await client.query<{ rid: number }>(
-          'SELECT rid FROM t_telegram_bot_user WHERE bot_rid=$1 AND tg_uid=$2 FOR UPDATE',
-          [botRid, selected.chatId],
-        )
-        if (!user.rows[0]) outcome = 'insufficient'
-        else {
-          const debit = await client.query(
-            'UPDATE t_telegram_bot_user SET cash_usdt=cash_usdt-$3::numeric WHERE rid=$1 AND bot_rid=$2 AND cash_usdt >= $3::numeric RETURNING cash_usdt::text',
-            [user.rows[0].rid, botRid, amountText],
-          )
-          if (!debit.rowCount) outcome = 'insufficient'
-          else {
-            const paid = await client.query(
-              'UPDATE t_premium_platform_order SET status=1,update_time=now() WHERE rid=$1 AND bot_rid=$2 AND buy_tg_uid=$3 AND status=0 RETURNING rid',
-              [selected.orderRid, botRid, selected.chatId],
-            )
-            if (!paid.rowCount) throw new Error('premium_wallet_order_state_conflict')
-            premiumUsername = String(order.rows[0].premium_tg_username ?? '')
-            packageMonth = String(order.rows[0].premium_package_month ?? '')
-            outcome = 'paid'
-          }
-        }
-      }
-    }
-    await client.query('COMMIT')
-  } catch (error) {
-    await client.query('ROLLBACK').catch(() => undefined)
-    throw error
-  } finally { client.release() }
-
-  if (outcome === 'paid') {
-    const sent = await tg(fetcher, token, 'editMessageText', {
-      chat_id: selected.chatId,
-      message_id: selected.callback.message?.message_id,
-      text: `会员订单支付成功，开通中···\n开通用户：${escapeTelegramHtml(premiumUsername)}\n开通时间：${escapeTelegramHtml(packageMonth)}`,
-      parse_mode: 'HTML',
-      allow_sending_without_reply: true,
-    })
-    if (!sent.ok) throw new Error('premium_wallet_pay_success_message_failed')
-  } else {
-    const sent = await tg(fetcher, token, 'sendMessage', {
-      chat_id: selected.chatId,
-      text: outcome === 'insufficient' ? '用户USDT余额不足' : '订单不存在或者不是待支付状态',
-      reply_to_message_id: selected.callback.message?.message_id,
-      parse_mode: 'Markdown',
-      allow_sending_without_reply: true,
-    })
-    if (!sent.ok) throw new Error('premium_wallet_pay_result_message_failed')
-  }
-  return true
-}
-async function handlePremiumCancelUnpaidCallback(pool: Database, fetcher: typeof fetch, botRid: number, update: Update['update_body']) {
-  const selected = premiumCancelUnpaidCallback(update)
-  if (!selected) return false
-  const token = await botTokenFor(pool, botRid)
-  if (selected.callback.id != null) await tg(fetcher, token, 'answerCallbackQuery', { callback_query_id: String(selected.callback.id) })
-  const client = await (pool as Pool).connect()
-  try {
-    await client.query('BEGIN')
-    await client.query("SELECT pg_advisory_xact_lock(hashtextextended('telegram-premium-cancel:' || $1 || ':' || $2,0))", [botRid, selected.chatId])
-    await client.query('UPDATE t_premium_platform_order SET status=4,cancel_time=now() WHERE bot_rid=$1 AND status=0 AND buy_tg_uid=$2', [botRid, selected.chatId])
-    await client.query('COMMIT')
-  } catch (error) {
-    await client.query('ROLLBACK').catch(() => undefined)
-    throw error
-  } finally { client.release() }
-  const sent = await tg(fetcher, token, 'sendMessage', {
-    chat_id: selected.chatId,
-    text: '您的未完成会员订单已取消，可重新发起购买会员！',
-    parse_mode: 'Markdown',
-    allow_sending_without_reply: true,
-  })
-  if (!sent.ok) throw new Error('premium_cancel_unpaid_reply_failed')
-  return true
-}
-async function handlePremiumChooseAgainCallback(pool: Database, fetcher: typeof fetch, botRid: number, update: Update['update_body']) {
-  const selected = premiumChooseAgainCallback(update)
-  if (!selected) return false
-  const token = await botTokenFor(pool, botRid)
-  const sent = await tg(fetcher, token, 'answerCallbackQuery', {
-    callback_query_id: String(selected.callback.id ?? ''),
-    text: '开通 Telegram 会员前，请仔细核对收款地址、支付金额和开通账号。',
-    show_alert: true,
-  })
-  if (!sent.ok) throw new Error('premium_choose_again_alert_failed')
   return true
 }
 async function handleLegacyEnergyFeeInfoCallback(pool: Database, fetcher: typeof fetch, botRid: number, update: Update['update_body']) {
@@ -3383,19 +3217,7 @@ export async function syncTelegramSupportUpdates(options: { pool?: Database; fet
           count++
           continue
         }
-        if (await handleTelegramPremiumPackageCallback(pool, fetcher, item.bot_rid, item.update_body)) {
-          await processed(pool, item.rid, owner)
-          count++
-          continue
-        }
-        if (premiumWalletPayCallback(item.update_body)) {
-          await handlePremiumWalletPayCallback(pool, fetcher, item.bot_rid, item.update_body)
-          await processed(pool, item.rid, owner)
-          count++
-          continue
-        }
-        if (premiumCancelUnpaidCallback(item.update_body)) {
-          await handlePremiumCancelUnpaidCallback(pool, fetcher, item.bot_rid, item.update_body)
+        if (await handlePremiumTelegramCallback(pool, fetcher, item.bot_rid, item.update_body)) {
           await processed(pool, item.rid, owner)
           count++
           continue
@@ -3408,12 +3230,6 @@ export async function syncTelegramSupportUpdates(options: { pool?: Database; fet
         }
         if (energyPlatformPackageCallback(item.update_body)) {
           await handleEnergyPlatformPackageCallback(pool, fetcher, item.bot_rid, item.update_body)
-          await processed(pool, item.rid, owner)
-          count++
-          continue
-        }
-        if (premiumChooseAgainCallback(item.update_body)) {
-          await handlePremiumChooseAgainCallback(pool, fetcher, item.bot_rid, item.update_body)
           await processed(pool, item.rid, owner)
           count++
           continue

@@ -2,10 +2,11 @@ import { randomUUID } from 'node:crypto'
 import type { DatabaseConnection as Pool, DatabaseClient as PoolClient } from '../server/database.types'
 import { db } from '../server/db.server'
 import { can, identity, run } from '../server/api.server'
-import { pluginCatalog } from './catalog'
+import { pluginCatalog, type PluginId } from './catalog'
+import { lifecycleBlockerSql as premiumLifecycleBlockerSql } from '@tgbotpress/plugin-premium'
 
-export const managedModuleIds = ['transit', 'energy', 'premium', 'monitor', 'collection', 'shop'] as const
-export type ManagedModuleId = typeof managedModuleIds[number]
+export type ManagedModuleId = Exclude<PluginId, 'groups' | 'cloneproxy'>
+export const managedModuleIds: ManagedModuleId[] = pluginCatalog.filter(plugin => plugin.id !== 'groups' && plugin.id !== 'cloneproxy').map(plugin => plugin.id as ManagedModuleId)
 export type PluginLifecycleState = 'active' | 'draining' | 'uninstalled'
 export type PluginLifecycleAction = 'disable' | 'resume' | 'uninstall' | 'install'
 export function pluginAcceptsWrites(state: string | null | undefined) { return state === 'active' }
@@ -16,7 +17,7 @@ const pendingSupportSql = "SELECT count(*)::int AS count FROM t_platform_telegra
 const blockerQueries: Record<ManagedModuleId, string> = {
   transit: `SELECT (SELECT count(*) FROM t_transit_wallet_trade_list WHERE process_status IN (0,1,8))::int + (SELECT count(*) FROM t_platform_job_outbox WHERE task_name='sendtransittgmessage' AND status IN ('pending','processing'))::int AS count`,
   energy: `SELECT (SELECT count(*) FROM t_energy_wallet_trade_list WHERE process_status IN (1,8))::int + (SELECT count(*) FROM t_energy_quick_order WHERE status IN (1,8))::int + (SELECT count(*) FROM t_energy_platform_order WHERE recovery_status=2)::int + (SELECT count(*) FROM t_energy_ai_bishu WHERE is_buy='B')::int + (SELECT count(*) FROM t_platform_job_outbox WHERE task_name IN ('sendenergytgmessage','recoveryenergy','bindasendnusdt') AND status IN ('pending','processing'))::int AS count`,
-  premium: `SELECT (SELECT count(*) FROM t_premium_wallet_trade_list WHERE process_status=1)::int + (SELECT count(*) FROM t_premium_platform_order WHERE status IN (0,1,6))::int + (SELECT count(*) FROM t_platform_job_outbox WHERE task_name='sendpremiumtgmessage' AND status IN ('pending','processing'))::int AS count`,
+  premium: premiumLifecycleBlockerSql,
   monitor: `SELECT 0::int AS count`,
   collection: `SELECT (SELECT count(*) FROM t_platform_collection_wallet_action WHERE state IN ('claimed','signing'))::int + (SELECT count(*) FROM t_platform_job_outbox WHERE task_name='handlecollectionwallet' AND status IN ('pending','processing'))::int AS count`,
   shop: `SELECT 0::int AS count`,
