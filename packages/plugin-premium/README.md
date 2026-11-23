@@ -38,7 +38,7 @@ import { PremiumAdminProvider, PremiumPlatformsPage, PremiumPackagesPage, Premiu
 
 TGBotPress 宿主仍负责 HTTP/TanStack 路由挂载、全局后台 UI shell、基础 UI 组件、TronGrid API key 配置读取、密钥加密存储、媒体文件保存、TON 命令执行和身份/权限提供。会员平台/套餐/订单/交易页面及 API、Telegram 购买、钱包轮询、履约、通知和任务定义由包内实现；宿主路由及任务调度器将插件能力接入宿主运行时。
 
-会员平台、套餐、订单、钱包交易、Telegram 购买记录和 Stars 支付记录的 PostgreSQL 初始化/增量迁移都随包发布在 `migrations/postgres/`。宿主迁移器启动时会加载这些迁移；宿主账号、机器人和会话表仍由平台核心提供。该接入按项目当前正式支持的 PostgreSQL 环境实现。
+会员平台、套餐、订单、钱包交易、Telegram 购买记录和 Stars 支付记录的 PostgreSQL 初始化/增量迁移都随包发布在 `migrations/postgres/`。宿主迁移器会读取仓库内插件包，以及宿主 `package.json` 明确声明的 `@tgbotpress/plugin-*` 依赖，并执行其 Postgres 迁移；不会扫描或执行未声明的 `node_modules` 包。宿主账号、机器人和会话表仍由平台核心提供。该接入按项目当前正式支持的 PostgreSQL 环境实现。
 
 manifest 用于宿主的内置模块目录和状态管理。**安装 npm 包本身不会自动注册 TanStack 页面、HTTP 路由或启动后台任务**；这些路由与任务仍需宿主在构建/启动时挂载，动态加载和隔离能力仍有限。包发布、宿主集成和 ETS 市场展示分别验收。
 
