@@ -1,44 +1,4 @@
-import { createPublicKey,type KeyObject } from 'node:crypto'
-import { readFileSync } from 'node:fs'
-import { z } from 'zod'
-import { can,identity,run } from './api.server'
-import { db } from './db.server'
-import { encryptRsaV2 } from './rsa-storage.server'
-const H={'Cache-Control':'no-store','Referrer-Policy':'no-referrer'},base='admin.premium.platform',id=z.coerce.number().int().positive().max(2147483647)
-const perms={create:['添加会员平台','add'],update:['修改会员平台','update'],delete:['删除会员平台','delete'],status:['修改会员平台','change_status'],cookie:['修改cookie','updateapikey'],phrase:['修改助记词','updatephrase']} as const
-let key:KeyObject|null=null
-function encrypt(v:string){if(!key){const p=process.env.TRON_RSA_PUBLIC_KEY_PATH,r=(p?readFileSync(p,'utf8'):process.env.TRON_RSA_PUBLIC_KEY)?.replace(/\\n/g,'\n').trim();if(!r)throw Error('RSA_PUBLIC_KEY_UNAVAILABLE');key=createPublicKey(r)}return encryptRsaV2(v,key,3000)}
-export function premiumPlatformApi(req:Request){return run(async()=>{
- const u=await identity(req),url=new URL(req.url),allowed=(a:keyof typeof perms)=>can(u,perms[a][0],base+'.'+perms[a][1])
- if(!can(u,'会员管理',base+'.index')||!can(u,'会员平台',base+'.index'))return Response.json({message:'没有访问权限'},{status:403,headers:H})
- if(req.method==='GET'){
-  if(url.searchParams.get('action')==='options'){const r=await db.query('SELECT rid,bot_firstname,bot_username FROM t_telegram_bot ORDER BY rid DESC');return Response.json({bots:r.rows},{headers:H})}
-  const q=z.object({page:z.coerce.number().int().min(1).default(1),pageSize:z.coerce.number().pipe(z.union([z.literal(10),z.literal(15),z.literal(20),z.literal(30),z.literal(50),z.literal(100)])).default(15),search:z.string().trim().max(100).default('')}).parse(Object.fromEntries(url.searchParams))
-  const s='%'+q.search.replace(/[!%_]/g,c=>'!'+c)+'%',w="($1='%%' OR COALESCE(p.platform_hash,'') ILIKE $1 ESCAPE '!' OR COALESCE(p.tg_admin_uid,'') ILIKE $1 ESCAPE '!' OR COALESCE(p.comments,'') ILIKE $1 ESCAPE '!')"
-  const [n,r]=await Promise.all([db.query('SELECT count(*)::int AS total FROM t_premium_platform p WHERE '+w,[s]),db.query(`SELECT p.rid,p.bot_rid,b.bot_firstname,b.bot_username,p.platform_name,p.tg_admin_uid,p.platform_hash,(COALESCE(p.platform_cookie,'')<>'') cookie_configured,(COALESCE(p.platform_phrase,'')<>'') phrase_configured,p.status,p.receive_wallet,to_char(p.get_tx_time,'YYYY-MM-DD HH24:MI:SS') get_tx_time,p.tg_notice_obj_receive,p.tg_notice_obj_send,p.comments,to_char(p.create_time,'YYYY-MM-DD HH24:MI:SS') create_time FROM t_premium_platform p LEFT JOIN t_telegram_bot b ON b.rid=p.bot_rid WHERE ${w} ORDER BY p.rid DESC LIMIT $2 OFFSET $3`,[s,q.pageSize,(q.page-1)*q.pageSize])])
-  return Response.json({rows:r.rows,total:n.rows[0].total,page:q.page,pageSize:q.pageSize,canAdd:allowed('create'),canEdit:allowed('update'),canDelete:allowed('delete'),canStatus:allowed('status'),canCookie:allowed('cookie'),canPhrase:allowed('phrase')},{headers:H})
- }
- if(req.method!=='POST')return Response.json({message:'请求方法不支持'},{status:405,headers:H})
- const origin=process.env.PLATFORM_ORIGIN?new URL(process.env.PLATFORM_ORIGIN).origin:''
- if(!origin||req.headers.get('origin')!==origin||!req.headers.get('content-type')?.startsWith('application/json'))return Response.json({message:'请求来源无效'},{status:403,headers:H})
- if(Number(req.headers.get('content-length')||0)>32768)return Response.json({message:'表单内容过长'},{status:413,headers:H})
- const raw=await req.text();if(raw.length>32768)return Response.json({message:'表单内容过长'},{status:413,headers:H})
- let b:any;try{b=JSON.parse(raw)}catch{return Response.json({message:'表单内容无效'},{status:400,headers:H})}
- const a=z.object({action:z.enum(['create','update','delete','status','cookie','phrase'])}).parse(b).action
- if(!allowed(a))return Response.json({message:'没有操作权限'},{status:403,headers:H})
- const c=await db.connect();try{await c.query('BEGIN');let rid:number,msg=''
- if(a==='create'||a==='update'){
-  const schema=z.object({action:z.enum(['create','update']),...(a==='update'?{rid:id}:{}),bot_rid:id,platform_name:z.union([z.literal(1),z.literal(2)]),tg_admin_uid:z.string().trim().max(500).default(''),platform_hash:z.string().trim().max(500).default(''),...(a==='create'?{platform_cookie:z.string().trim().max(2500).default('')}:{}),tg_notice_obj_receive:z.string().trim().max(200).default(''),tg_notice_obj_send:z.string().trim().max(200).default(''),receive_wallet:z.string().trim().max(100).default(''),get_tx_time:z.string().trim().max(40).default(''),comments:z.string().trim().max(255).default('')}).strict()
-  const d=schema.parse(b);if(!(await c.query('SELECT 1 FROM t_telegram_bot WHERE rid=$1',[d.bot_rid])).rowCount){await c.query('ROLLBACK');return Response.json({message:'机器人不存在'},{status:400,headers:H})}
-  if(d.receive_wallet){const e=await c.query('SELECT 1 FROM t_energy_platform_bot WHERE receive_wallet=$1 LIMIT 1',[d.receive_wallet]),t=await c.query('SELECT 1 FROM t_telegram_bot WHERE recharge_wallet_addr=$1 LIMIT 1',[d.receive_wallet]),x=await c.query('SELECT 1 FROM t_transit_wallet WHERE receive_wallet=$1 LIMIT 1',[d.receive_wallet]);if(e.rowCount||t.rowCount||x.rowCount){await c.query('ROLLBACK');return Response.json({message:e.rowCount?'不能和能量钱包地址一致':t.rowCount?'收款钱包不能和机器人充值地址一致':'不能和闪兑钱包地址一致'},{status:400,headers:H})}}
-  let time:string|null=null;if(d.get_tx_time){if(!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(d.get_tx_time)||Number.isNaN(new Date(d.get_tx_time.replace(' ','T')+'Z').getTime())){await c.query('ROLLBACK');return Response.json({message:'交易拉取时间无效'},{status:400,headers:H})}time=d.get_tx_time.length===16?d.get_tx_time+':00':d.get_tx_time}
-  let secret='';if(a==='create'&&d.platform_cookie){try{secret=encrypt(String(d.platform_cookie))}catch(e){await c.query('ROLLBACK');return Response.json({message:e instanceof RangeError?'Cookie 长度超出存储限制':'服务端 RSA 公钥未配置'},{status:e instanceof RangeError?400:503,headers:H})}}
-  if(a==='create'){await c.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`premium-platform:${d.bot_rid}:${d.platform_hash}`]);if((await c.query('SELECT 1 FROM t_premium_platform WHERE bot_rid=$1 AND platform_hash=$2 LIMIT 1',[d.bot_rid,d.platform_hash])).rowCount){await c.query('ROLLBACK');return Response.json({message:'机器人对应会员平台已存在'},{status:409,headers:H})}const r=await c.query('INSERT INTO t_premium_platform(bot_rid,platform_name,tg_admin_uid,platform_hash,platform_cookie,tg_notice_obj_receive,tg_notice_obj_send,receive_wallet,get_tx_time,comments,create_time) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now()) RETURNING rid',[d.bot_rid,d.platform_name,d.tg_admin_uid,d.platform_hash,secret,d.tg_notice_obj_receive,d.tg_notice_obj_send,d.receive_wallet,time,d.comments]);rid=r.rows[0].rid;msg='会员平台已添加'}
-  else{rid=Number(d.rid);if(!(await c.query('SELECT rid FROM t_premium_platform WHERE rid=$1 FOR UPDATE',[rid])).rowCount){await c.query('ROLLBACK');return Response.json({message:'会员平台不存在'},{status:404,headers:H})}const duplicate=await c.query('SELECT 1 FROM t_premium_platform WHERE bot_rid=$1 AND platform_name=$2 AND rid<>$3 LIMIT 1',[d.bot_rid,d.platform_name,rid]);if(duplicate.rowCount){await c.query('ROLLBACK');return Response.json({message:'该机器人对应会员平台已存在'},{status:409,headers:H})}await c.query('UPDATE t_premium_platform SET bot_rid=$2,platform_name=$3,tg_admin_uid=$4,platform_hash=$5,tg_notice_obj_receive=$6,tg_notice_obj_send=$7,receive_wallet=$8,get_tx_time=$9,comments=$10,update_time=now() WHERE rid=$1',[rid,d.bot_rid,d.platform_name,d.tg_admin_uid,d.platform_hash,d.tg_notice_obj_receive,d.tg_notice_obj_send,d.receive_wallet,time,d.comments]);msg='会员平台已更新'}
- }else if(a==='status'){const d=z.object({action:z.literal('status'),rid:id,enabled:z.boolean()}).strict().parse(b);rid=Number(d.rid);if(!(await c.query('UPDATE t_premium_platform SET status=$2,update_time=now() WHERE rid=$1 RETURNING rid',[rid,d.enabled?0:1])).rowCount){await c.query('ROLLBACK');return Response.json({message:'会员平台不存在'},{status:404,headers:H})}msg=d.enabled?'会员平台已启用':'会员平台已停用'
- }else if(a==='delete'){const d=z.object({action:z.literal('delete'),rid:id}).strict().parse(b);rid=Number(d.rid);if(!(await c.query('DELETE FROM t_premium_platform WHERE rid=$1 RETURNING rid',[rid])).rowCount){await c.query('ROLLBACK');return Response.json({message:'会员平台不存在'},{status:404,headers:H})}msg='会员平台已删除'
- }else{const col=a==='cookie'?'platform_cookie':'platform_phrase',d=z.object({action:z.enum(['cookie','phrase']),rid:id,value:z.string().trim().min(1).max(2500)}).strict().parse(b);rid=Number(d.rid);let enc:string;try{enc=encrypt(d.value)}catch(e){await c.query('ROLLBACK');return Response.json({message:e instanceof RangeError?'内容长度超出存储限制':'服务端 RSA 公钥未配置'},{status:e instanceof RangeError?400:503,headers:H})}if(!(await c.query(`UPDATE t_premium_platform SET ${col}=$2,update_time=now() WHERE rid=$1 RETURNING rid`,[rid,enc])).rowCount){await c.query('ROLLBACK');return Response.json({message:'会员平台不存在'},{status:404,headers:H})}msg=a==='cookie'?'Cookie 已加密更新':'助记词已加密更新'}
- await c.query('INSERT INTO t_platform_audit_log(admin_id,action,resource_id) VALUES($1,$2,$3)',[u.id,base+'.'+a,rid]);await c.query('COMMIT');return Response.json({ok:true,message:msg},{headers:H})
- }catch(e){await c.query('ROLLBACK');throw e}finally{c.release()}
-})}
+import { createPremiumPlatformApi } from '@tgbotpress/plugin-premium/admin-api'
+import { premiumPluginHost } from './premium-plugin-host.server'
 
+export const premiumPlatformApi = createPremiumPlatformApi(premiumPluginHost)
