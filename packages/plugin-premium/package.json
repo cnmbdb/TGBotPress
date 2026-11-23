@@ -1,6 +1,16 @@
 {
   "name": "@tgbotpress/plugin-premium",
   "version": "0.1.0",
+  "description": "TGBotPress Telegram membership plugin with USDT collection and Fragment, TON, or Telegram Stars fulfillment.",
+  "keywords": ["tgbotpress", "telegram", "bot", "plugin", "membership", "telegram-stars", "usdt"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cnmbdb/TGBotPress.git",
+    "directory": "packages/plugin-premium"
+  },
+  "homepage": "https://github.com/cnmbdb/TGBotPress/tree/main/packages/plugin-premium",
+  "bugs": { "url": "https://github.com/cnmbdb/TGBotPress/issues" },
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
