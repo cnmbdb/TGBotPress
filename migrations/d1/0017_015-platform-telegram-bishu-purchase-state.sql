@@ -1,5 +1,3 @@
-BEGIN;
-
 ALTER TABLE t_platform_telegram_conversation_state
   ADD COLUMN context TEXT;
 
@@ -21,5 +19,3 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_bishu_purchase (
 
 CREATE INDEX IF NOT EXISTS t_platform_telegram_bishu_purchase_user_created_idx
   ON t_platform_telegram_bishu_purchase(bot_rid, chat_id, created_at DESC);
-
-COMMIT;

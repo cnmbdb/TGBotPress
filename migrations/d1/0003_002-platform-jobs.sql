@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_job_leader (
  task_name varchar(100) PRIMARY KEY,
  owner_id varchar(64) NOT NULL,
@@ -29,4 +28,3 @@ CREATE INDEX IF NOT EXISTS t_platform_job_outbox_pending_idx
  ON t_platform_job_outbox(status,next_attempt_at,id);
 CREATE INDEX IF NOT EXISTS t_platform_job_outbox_expired_lease_idx
  ON t_platform_job_outbox(status,locked_until,id);
-COMMIT;

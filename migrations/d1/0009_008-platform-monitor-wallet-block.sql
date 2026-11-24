@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS t_platform_monitor_wallet_block_cursor (
   cursor_key varchar(100) PRIMARY KEY,
   latest_block bigint NOT NULL,
@@ -45,5 +43,3 @@ CREATE INDEX IF NOT EXISTS t_platform_monitor_wallet_notification_pending_idx
   ON t_platform_monitor_wallet_notification(status,next_attempt_at,rid);
 CREATE INDEX IF NOT EXISTS t_platform_monitor_wallet_notification_lease_idx
   ON t_platform_monitor_wallet_notification(status,locked_until,rid);
-
-COMMIT;

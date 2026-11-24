@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_telegram_conversation_state (
   bot_rid integer NOT NULL,
   chat_id bigint NOT NULL,
@@ -12,4 +11,3 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_conversation_state (
 );
 CREATE INDEX IF NOT EXISTS t_platform_telegram_conversation_state_expiry_idx
   ON t_platform_telegram_conversation_state(expires_at);
-COMMIT;

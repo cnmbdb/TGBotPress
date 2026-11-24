@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_admin_login_rate (
  rate_key char(64) PRIMARY KEY,
  attempts integer NOT NULL DEFAULT 0,
@@ -23,4 +22,3 @@ CREATE TABLE IF NOT EXISTS t_platform_admin_login_challenge (
  expires_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS t_platform_admin_login_challenge_expiry_idx ON t_platform_admin_login_challenge(expires_at);
-COMMIT;

@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_energy_special_action (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  idempotency_key varchar(255) NOT NULL UNIQUE,
@@ -17,4 +16,3 @@ CREATE TABLE IF NOT EXISTS t_platform_energy_special_action (
  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS t_platform_energy_special_action_pending_idx ON t_platform_energy_special_action(state,updated_at,id);
-COMMIT;

@@ -1,3 +1,4 @@
+import { DEFAULT_BRANDING } from "@/lib/branding-defaults"
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { api } from '@/lib/api'
@@ -25,7 +26,7 @@ const MenuLink = forwardRef<HTMLAnchorElement, Omit<ComponentPropsWithoutRef<'a'
 })
 
 function SideNavigation({ user, activeRoute, onNavigate }: { user: AdminUser; activeRoute: string; onNavigate?: () => void }) {
-  const branding = useQuery({queryKey:['system-config'],queryFn:()=>api<{branding?:{logoText:string;logoImageUrl:string;footerText:string}}>('/api/settings-config?action=config'),retry:false})
+  const branding = useQuery({queryKey:['system-config'],queryFn:()=>api<{branding?:{logoText:string;logoImageUrl:string;footerText:string;footerIconUrl?:string;footerLinkUrl?:string}}>('/api/settings-config?action=config'),retry:false})
   const pluginState = useQuery({ queryKey: ['plugins'], queryFn: () => api<{ plugins: Array<{ id: string; state: string | null; menuRoutes?: string[] }> }>('/api/plugins'), retry: false, staleTime: 15_000 })
   const canViewVersion = visibleNavigation(user).some(group => group.items.some(item => item.id === 'admin.setting.app_version.index'))
   const versionStatus = useQuery({ queryKey: ['settings-version'], queryFn: () => api<{ images?: { admin?: { state?: string } } }>('/api/settings-version?refresh=1'), enabled: canViewVersion, retry: false, staleTime: 30_000, refetchInterval: 3 * 24 * 60 * 60 * 1000, refetchIntervalInBackground: true })
@@ -43,7 +44,7 @@ function SideNavigation({ user, activeRoute, onNavigate }: { user: AdminUser; ac
     return () => document.removeEventListener('keydown', shortcut)
   }, [])
   return <div className="flex h-full min-h-0 flex-col bg-card">
-    <MenuLink route='admin.home' className="flex h-14 shrink-0 items-center justify-center px-5 text-base font-semibold tracking-tight" onClick={onNavigate}>{branding.data?.branding?.logoImageUrl && <img src={branding.data.branding.logoImageUrl} alt="" className="mr-2 size-6 rounded object-contain" />}{branding.data?.branding?.logoText ?? "TGBotPress"}</MenuLink>
+    <MenuLink route='admin.home' className="flex h-14 shrink-0 items-center justify-center px-5 text-base font-semibold tracking-tight" onClick={onNavigate}>{(branding.data?.branding?.logoImageUrl ?? DEFAULT_BRANDING.logoImageUrl) && <img src={branding.data?.branding?.logoImageUrl ?? DEFAULT_BRANDING.logoImageUrl} alt="" className="mr-2 size-6 rounded object-contain" />}{branding.data?.branding?.logoText ?? DEFAULT_BRANDING.logoText}</MenuLink>
     <div className="relative mx-3 mb-3"><Search className="pointer-events-none absolute top-2.5 left-3 size-3.5 text-muted-foreground" /><Input ref={input} aria-label={t("搜索后台菜单")} placeholder={t("搜索菜单…  ⌘K")} value={search} onChange={event => setSearch(event.target.value)} className="h-11 md:h-9 pl-9 text-xs" /></div>
     <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-scrollbar]]:hidden"><nav aria-label={t("后台主导航")} className="space-y-1 px-3 pb-3">{groups.map(group => {
       const items = group.items.filter(item => !term || group.label.toLowerCase().includes(term) || item.label.toLowerCase().includes(term))
@@ -55,7 +56,7 @@ function SideNavigation({ user, activeRoute, onNavigate }: { user: AdminUser; ac
         <CollapsibleContent><div className="mt-1 space-y-0.5 pl-7">{items.map(item => <Button key={item.id} asChild variant={item.id === activeRoute ? 'secondary' : 'ghost'} className="h-11 md:h-8 w-full justify-start px-3 text-xs font-normal"><MenuLink route={item.id} aria-current={item.id === activeRoute ? 'page' : undefined} onClick={onNavigate}>{item.label}</MenuLink></Button>)}</div></CollapsibleContent>
       </Collapsible>
     })}</nav></ScrollArea>
-    <div className="flex h-11 shrink-0 items-center justify-center gap-2 border-t px-4"><span className="text-[11px] text-muted-foreground">{branding.data?.branding?.footerText ?? "TGBotPress"}</span>{canViewVersion && !versionStatus.isError && versionStatus.data?.images?.admin?.state === 'update_available' && <Tooltip><TooltipTrigger asChild><MenuLink route='admin.setting.app_version.index' aria-label={t("版本更新")} className="flex size-5 items-center justify-center rounded-full bg-sky-500 text-white" onClick={onNavigate}><Download className="size-3" /></MenuLink></TooltipTrigger><TooltipContent side="right">{t("版本更新")}</TooltipContent></Tooltip>}</div>
+    <div className="flex h-11 shrink-0 items-center justify-center gap-2 border-t px-4">{branding.data?.branding?.footerLinkUrl !== '' ? <a href={branding.data?.branding?.footerLinkUrl ?? DEFAULT_BRANDING.footerLinkUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">{(branding.data?.branding?.footerIconUrl ?? DEFAULT_BRANDING.footerIconUrl) && <img src={branding.data?.branding?.footerIconUrl ?? DEFAULT_BRANDING.footerIconUrl} alt="" className="size-3.5" />}<span>{branding.data?.branding?.footerText ?? DEFAULT_BRANDING.footerText}</span></a> : <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">{branding.data?.branding?.footerIconUrl && <img src={branding.data.branding.footerIconUrl} alt="" className="size-3.5" />}{branding.data?.branding?.footerText ?? DEFAULT_BRANDING.footerText}</span>}{canViewVersion && !versionStatus.isError && versionStatus.data?.images?.admin?.state === 'update_available' && <Tooltip><TooltipTrigger asChild><MenuLink route='admin.setting.app_version.index' aria-label={t("版本更新")} className="flex size-5 items-center justify-center rounded-full bg-sky-500 text-white" onClick={onNavigate}><Download className="size-3" /></MenuLink></TooltipTrigger><TooltipContent side="right">{t("版本更新")}</TooltipContent></Tooltip>}</div>
   </div>
 }
 

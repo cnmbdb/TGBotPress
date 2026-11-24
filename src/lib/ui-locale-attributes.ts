@@ -18,6 +18,7 @@ export function translateUiAttribute(value: string, locale: Locale, attribute: s
     const name = translateUiText(match[1], locale)
     return localized(l, "Enable " + name + " plugin", "Включить плагин «" + name + "»", name + " プラグインを有効化")
   }
+  if ((match = /^在该机器人启用(.+)$/.exec(value))) return localized(l, "Enable " + translateUiText(match[1], locale) + " on this Bot", "Включить «" + translateUiText(match[1], locale) + "» для этого бота", "この Bot で" + translateUiText(match[1], locale) + "を有効化")
   if ((match = /^键盘 (\d+) 启用状态$/.exec(value))) return localized(l, "Keyboard " + match[1] + " enabled status", "Статус клавиатуры №" + match[1], "キーボード " + match[1] + " の有効状態")
   if ((match = /^(.+)状态$/.exec(value))) return localized(l, "Status for " + match[1], "Статус: " + match[1], match[1] + " の状態")
   if ((match = /^删除(.+)$/.exec(value))) return localized(l, "Delete " + match[1], "Удалить " + match[1], match[1] + " を削除")

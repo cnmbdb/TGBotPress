@@ -1,4 +1,3 @@
-BEGIN;
 INSERT INTO t_telegram_bot_keyboard (rid,keyboard_type,keyboard_name,keyboard_icon_custom_emoji_id,inline_type,keyboard_value,status,create_by,create_time,update_by,update_time,seq_sn)
 SELECT 16,1,'克隆/代理',NULL,0,'-',0,NULL,CURRENT_TIMESTAMP,NULL,CURRENT_TIMESTAMP,89
 WHERE NOT EXISTS (SELECT 1 FROM t_telegram_bot_keyboard WHERE keyboard_type=1 AND keyboard_name='克隆/代理');
@@ -10,4 +9,3 @@ SELECT 777,1,k.rid,kb.rid,NULL,CURRENT_TIMESTAMP,NULL,CURRENT_TIMESTAMP
 FROM t_telegram_bot_keyreply k,t_telegram_bot_keyboard kb
 WHERE k.bot_rid=1 AND k.monitor_word='克隆/代理' AND kb.keyboard_type=1 AND kb.keyboard_name='克隆/代理'
 AND NOT EXISTS (SELECT 1 FROM t_telegram_bot_keyreply_keyboard r WHERE r.bot_rid=1 AND r.keyreply_rid=k.rid AND r.keyboard_rid=kb.rid);
-COMMIT;

@@ -8,7 +8,7 @@ description: Develop a TGBotPress npm module plugin, including host integration 
 先阅读仓库 AGENTS.md、docs/plugin-development.md、packages/plugin-sdk/src/index.d.ts，并核对 package.json、宿主注册及实际测试；以当前代码而非示例为准。保留已有改动，并检查目标功能的调用关系和影响。
 
 ## 当前契约
-插件为独立 ESM npm 包，`package.json` 的 `exports` 显式提供 JS 和类型入口；根入口导出 `manifest` 与 `plugin`。当前 SDK 0.1.0 的 manifest 必填 `id`、`version`、`hostRange`、`sdkVersion`、`name`，可声明 `dependencies`、`menuRoutes`、`apiRoutes`、`tasks`、`drainTasks` 和 `configTypes`。`plugin` 含 manifest，可选 `activate`、`deactivate`；不要假设声明自动注册路由或能力。根据目标需求列出插件入口、宿主注入类型、权限、数据库表和迁移、任务及 Telegram 更新，参考现有 groups 和 cloneproxy 包。
+第三方插件是独立 ESM npm 包，根目录必须有 `tgbotpress.plugin.json`，`package.json` 的 `tgbotpressPlugin` 必须镜像同一清单；`entry` 指向已编译入口（默认建议 `./dist/index.js`），入口导出与外部清单完全一致的 `manifest` 和 `plugin`。SDK 0.1.0 manifest 必填 `schemaVersion`、命名空间风格 `id`、`name`、`version`、`apiVersion`、`hostRange`、`sdkRange`、`runtime.node`、`entry` 和 `permissions`。优先使用 `telegram.updates.read`、`telegram.messages.send`、`plugin.storage.read`、`plugin.storage.write`、`plugin.jobs.register`、`admin.api` 等细粒度权限；插件存储按 Bot ID 隔离。注册项必须在 `activate(host)` 中通过 SDK 注册能力创建；声明字段不会自动创建页面。当前 runtime 接入 HTTP 路由、周期任务、Telegram 更新和 KV 存储；后台菜单/页面仍需宿主前端静态接入。
 
 ## 工作流程
 1. 确定宿主版本、功能边界、插件依赖、数据所有权和旧行为；追踪 API、菜单、worker、Telegram、失败与并发路径。
@@ -18,4 +18,4 @@ description: Develop a TGBotPress npm module plugin, including host integration 
 5. 报告已实现、实测和未实现项；绝不声称 npm pack 成功即支持安装。不得把 token、私钥等凭据放入插件包、前端或日志。
 
 ## 重要现状
-当前宿主是静态注册，远程安装、动态前端路由、版本回滚及第三方隔离未完成安全验收，且安装策略限定官方包。创建 npm 包或提供 manifest 不足以让任意插件直接安装；先实现并验证宿主扩展、第三方隔离和权限机制，再宣称兼容。第三方插件代码是任意代码，权限声明和 `--ignore-scripts` 均不构成沙箱。不要发布、安装或访问真实外部服务，除非任务明确授权。
+当前宿主已提供公开 npm 固定版本安装、sidecar manifest 校验、动态 HTTP/Telegram/任务注册及插件级 KV 存储。第三方 npm 动态安装目前只覆盖 PostgreSQL，动态后台菜单/UI、权限审批和插件数据库迁移尚未完成。多容器部署必须共享插件目录。第三方插件代码与 Core 同进程运行，权限声明和 `--ignore-scripts` 不构成沙箱。不要发布包；安装真实外部插件仅限用户明确要求。

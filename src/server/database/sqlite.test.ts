@@ -11,6 +11,13 @@ test('SQLite adapter rewrites positional placeholders, casts and array membershi
   })
 })
 
+test('SQLite placeholder validation ignores question marks inside strings and comments', () => {
+  assert.deepEqual(sqlitePlaceholders("SELECT '?' AS literal, $1 AS value -- ?\n/* ? */", ['bound']), {
+    sql: "SELECT '?' AS literal, ? AS value -- ?\n/* ? */", values: ['bound'],
+  })
+  assert.throws(() => sqlitePlaceholders('SELECT ? AS value', ['bound']), /sqlite_parameter_count_mismatch:1:0/)
+})
+
 test('SQLite database adapter persists queries and supports transaction clients', async () => {
   const dir=await mkdtemp(join(tmpdir(),'tgbotpress-sqlite-')),db=SqliteDatabase.connect(join(dir,'test.sqlite'))
   try {

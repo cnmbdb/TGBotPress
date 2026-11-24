@@ -6,7 +6,10 @@ const defaults=(await readFile(new URL('../legacy/000-legacy-defaults.sql',impor
 await writeFile(new URL('0001_legacy_schema.sql',output),`${base}\n\n${defaults}\n`)
 const files=(await readdir(new URL('../migrations/sqlite/',import.meta.url))).filter(name=>/^\d+.*\.sql$/.test(name)).sort()
 for(const [index,name] of files.entries()){
-  const sql=(await readFile(new URL('../migrations/sqlite/'+name,import.meta.url),'utf8')).trim()
+  const sql=(await readFile(new URL('../migrations/sqlite/'+name,import.meta.url),'utf8'))
+    .replace(/^\s*BEGIN(?: TRANSACTION)?;\s*$/gim,'')
+    .replace(/^\s*COMMIT;\s*$/gim,'')
+    .trim()
   await writeFile(new URL(`${String(index+2).padStart(4,'0')}_${name}`,output),sql+'\n')
 }
 const manual=(await readFile(new URL('../migrations/sqlite/MANUAL_PORTS.txt',import.meta.url),'utf8')).trim()

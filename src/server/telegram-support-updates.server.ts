@@ -330,6 +330,8 @@ const cloneProxyTokenClaimPredicate = [
   " AND ((w.master_bot_rid IS NOT NULL AND w.clone_proxy_order_rid=o.rid AND w.consumed_at IS NULL AND w.expires_at>now())",
   " OR ((w.master_bot_rid IS NULL OR (w.consumed_at IS NULL AND w.expires_at<=now())) AND trim(COALESCE(u.update_body #>> '{message,text}','')) ~ '^\\d{6,12}:[A-Za-z0-9_-]{20,}$')))",
 ].join('\n')
+const thirdPartyPluginClaimPredicate = `EXISTS (SELECT 1 FROM t_platform_plugin_install i JOIN t_platform_plugin_lifecycle l ON l.plugin_id=i.plugin_id JOIN t_platform_plugin_instance x ON x.plugin_id=i.plugin_id AND x.bot_id=u.bot_rid AND x.state='active' WHERE i.source='npmjs' AND i.status='installed' AND l.state='active' AND (x.enabled_at IS NULL OR u.received_at>=x.enabled_at) AND (i.manifest_json->'permissions' ? 'telegram' OR i.manifest_json->'permissions' ? 'telegram.updates.read' OR i.manifest_json->'permissions' ? 'telegram.commands.register') AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(i.manifest_json->'telegramUpdateTypes') t(value) WHERE u.update_body ? t.value))`
+const supportsThirdPartyRuntime = (pool: Database) => (pool as Database & { dialect?: string }).dialect === 'postgres'
 const baseOtherClaimablePredicate = `(${disabledSecretMessagePredicate}) OR (${disabledSecretCallbackPredicate}) OR (${cloneProxyTokenClaimPredicate}) OR (${telegramExchangeRateClaimPredicate}) OR (${telegramEnergyBishuBindClaimPredicate}) OR (${telegramTradeStatisticsClaimPredicate}) OR (${telegramAdminActivationClaimPredicate}) OR (c.support_enabled=true AND (${supportCandidatePredicate})) OR (${verificationStartPredicate}) OR (${privateStartPredicate}) OR (${privateSharedIdPredicate}) OR (${bindASendNCallbackPredicate}) OR (${privateWalletBindCallbackPredicate}) OR (${privateWalletAddressReplyPredicate}) OR (${privateEnergyBishuReplyPredicate}) OR (${monitorWalletCallbackPredicate}) OR (${monitorWalletReplyPredicate}) OR (${bindASendNAddressReplyPredicate}) OR (${privateTronAddressPredicate}) OR (${privateEvmAddressPredicate}) OR (${privateBishuDirectPurchasePredicate}) OR (${privateTronHistoryCallbackPredicate}) OR (${privateTronApprovalCommandPredicate}) OR (${privateTronApprovalCallbackPredicate}) OR (${privateOkxC2cFilterCallbackPredicate}) OR (${privateEnergyBishuCallbackPredicate}) OR (${energyBishuPackageCallbackPredicate}) OR (${energyBalancePurchaseClaimPredicate}) OR (${energyBalancePurchaseReplyClaimPredicate}) OR (${trusteeshipMyAddressCallbackPredicate}) OR (${trusteeshipAddAddressCallbackPredicate}) OR (${trusteeshipDeleteAddressCallbackPredicate}) OR (${trusteeshipEnergySettingsCallbackPredicate}) OR (${trusteeshipCancelRechargeCallbackPredicate}) OR (${premiumWalletPayClaimPredicate}) OR (${premiumCancelUnpaidClaimPredicate}) OR (${premiumChooseAgainClaimPredicate}) OR (${legacyEnergyFeeInfoCallbackPredicate}) OR (${energyPlatformPackageCallbackPredicate}) OR (${privateGoodsPurchaseCallbackPredicate}) OR (${privateGoodsSelectionCallbackPredicate}) OR (${privateGoodsPageCallbackPredicate}) OR (${trusteeshipRechargeCallbackPredicate}) OR (${trusteeshipSwapTrxCallbackPredicate}) OR (${trusteeshipMenuCallbackPredicate}) OR (${privateEnergyBishuToggleCallbackPredicate})`
 const otherClaimablePredicate = `(${baseOtherClaimablePredicate}) OR (${telegramCloneProxyClaimPredicate}) OR (${premiumPackageCallbackClaimPredicate})`
 const claimablePredicate = `${otherClaimablePredicate} OR (${privateCalculatorPredicate}) OR (${telegramKeyreplyClaimPredicate})`
@@ -357,7 +359,7 @@ export async function telegramSupportUpdateClaimable(pool: Database, botRid: num
     SELECT 1 FROM t_telegram_bot b
     LEFT JOIN t_telegram_bot_moderation_config c ON c.bot_rid=b.rid
     CROSS JOIN (SELECT $1::bigint AS bot_rid,$2::jsonb AS update_body) u
-    WHERE b.rid=u.bot_rid AND (${predicate})
+    WHERE b.rid=u.bot_rid AND (${predicate}${supportsThirdPartyRuntime(pool) ? ` OR (${thirdPartyPluginClaimPredicate})` : ''})
   ) AS claimable`, [botRid, JSON.stringify(update)])
   return result.rows[0]?.claimable === true
 }
@@ -368,7 +370,7 @@ async function claim(pool: Database, owner: string, limit: number): Promise<Upda
     ' SELECT u.rid FROM t_platform_telegram_update u',
     ' JOIN t_telegram_bot b ON b.rid=u.bot_rid',
     ' LEFT JOIN t_telegram_bot_moderation_config c ON c.bot_rid=b.rid',
-    ` WHERE (${workerClaimablePredicate}) AND u.attempts<8`,
+    ` WHERE (${workerClaimablePredicate}${supportsThirdPartyRuntime(pool) ? ` OR (${thirdPartyPluginClaimPredicate})` : ''}) AND u.attempts<8`,
     " AND ((u.status IN ('pending','failed') AND u.next_attempt_at<=now()) OR (u.status='processing' AND u.lease_until<now()))",
     ' ORDER BY u.rid LIMIT $1 FOR UPDATE OF u SKIP LOCKED',
     ') UPDATE t_platform_telegram_update u SET status=\'processing\',attempts=u.attempts+1,lease_owner=$2,lease_until=now()+interval \'30 seconds\'',

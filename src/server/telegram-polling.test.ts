@@ -58,6 +58,40 @@ test('Telegram polling relays updates to Admin and keeps webhook deletion off by
   assert.ok(calls.some(sql => sql.startsWith('DELETE FROM t_platform_job_leader')))
 })
 
+test('polling subscribes to active third-party manifest update types and queues them for the plugin runtime', async () => {
+  let lastUpdateId: number | null = 50
+  const update={update_id:51,inline_query:{id:'inline-1',from:{id:9},query:'search'}}
+  const statements:string[]=[]
+  const pool={
+    dialect:'postgres',
+    query:async(sql:string)=>{
+      statements.push(sql)
+      if(sql.startsWith('SELECT rid,bot_token,last_update_id'))return{rows:[{rid:7,bot_token:'bot-secret',last_update_id:lastUpdateId}],rowCount:1}
+      if(sql.startsWith('SELECT DISTINCT jsonb_array_elements_text'))return{rows:[{update_type:'inline_query'}],rowCount:1}
+      if(sql.startsWith('SELECT EXISTS'))return{rows:[{claimable:true}],rowCount:1}
+      if(sql.startsWith('INSERT INTO t_platform_job_leader'))return{rows:[{owner_id:'lease'}],rowCount:1}
+      return{rows:[],rowCount:1}
+    },
+    connect:async()=>({query:async(sql:string,values?:unknown[])=>{
+      statements.push(sql)
+      if(sql.startsWith('SELECT last_update_id FROM t_telegram_bot'))return{rows:[{last_update_id:lastUpdateId}],rowCount:1}
+      if(sql.startsWith('INSERT INTO t_platform_telegram_update'))return{rows:[{rid:110}],rowCount:1}
+      if(sql.startsWith('UPDATE t_telegram_bot SET last_update_id')){lastUpdateId=Number(values?.[1]);return{rows:[],rowCount:1}}
+      return{rows:[],rowCount:1}
+    },release(){}}),
+  } as unknown as Pick<Pool,'query'|'connect'>
+  const urls:string[]=[]
+  const result=await pollNextTelegramBot({
+    ...baseOptions,pool,supportUpdateSyncEnabled:true,
+    fetcher:async input=>{const url=String(input);urls.push(url);return url.includes('getUpdates')?Response.json({ok:true,result:[update]}):new Response('',{status:200})},
+  })
+  assert.equal(result.accepted,1)
+  const allowed=new URL(urls[0]!).searchParams.get('allowed_updates')
+  assert.ok(JSON.parse(allowed!).includes('inline_query'))
+  assert.ok(statements.some(sql=>sql.startsWith('INSERT INTO t_platform_telegram_update')))
+  assert.equal(lastUpdateId,51)
+})
+
 test('plain private /start is routed into the durable inbox for native follower handling', async () => {
   let lastUpdateId: number | null = 40
   const update = { update_id: 41, message: { message_id: 12, chat: { id: 55, type: 'private' }, from: { id: 55, username: 'alice' }, text: '/start' } }

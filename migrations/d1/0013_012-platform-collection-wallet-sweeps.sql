@@ -1,6 +1,3 @@
-BEGIN;
-
-
 CREATE TABLE IF NOT EXISTS t_platform_collection_wallet_action (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   action_key char(64) NOT NULL UNIQUE,
@@ -25,4 +22,3 @@ CREATE INDEX IF NOT EXISTS t_platform_collection_wallet_action_wallet_idx
 
 CREATE INDEX IF NOT EXISTS t_collection_wallet_active_sweep_idx
   ON t_collection_wallet(status, rid) WHERE status=0;
-COMMIT;

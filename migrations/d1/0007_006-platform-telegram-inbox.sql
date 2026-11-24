@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_telegram_update (
  rid INTEGER PRIMARY KEY AUTOINCREMENT,
  bot_rid integer NOT NULL,
@@ -20,4 +19,3 @@ CREATE INDEX IF NOT EXISTS t_platform_telegram_update_pending_idx
  WHERE status IN ('pending','processing');
 CREATE INDEX IF NOT EXISTS t_platform_telegram_update_expiry_idx
  ON t_platform_telegram_update(expires_at);
-COMMIT;

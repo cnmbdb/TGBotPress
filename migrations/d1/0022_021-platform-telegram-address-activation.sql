@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_telegram_address_activation (
   update_rid bigint PRIMARY KEY,
   bot_rid integer NOT NULL,
@@ -12,4 +11,3 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_address_activation (
 );
 CREATE INDEX IF NOT EXISTS t_platform_telegram_address_activation_state_idx
   ON t_platform_telegram_address_activation(state,updated_at);
-COMMIT;

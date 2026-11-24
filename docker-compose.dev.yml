@@ -41,6 +41,7 @@ services:
       PLATFORM_ORIGIN: http://127.0.0.1:8083
       REDIS_HOST: redis
       WEBHOOK_PROXY_PORT: 8084
+      PLATFORM_PLUGIN_DIR: /plugin-storage
       NODE_ENV: development
       CHOKIDAR_USEPOLLING: "true"
       __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: localhost,127.0.0.1
@@ -65,9 +66,11 @@ services:
       - .:/app
       - platform_node_modules:/app/node_modules
       - media:/legacy-storage
+      - plugins:/plugin-storage
     init: true
     restart: unless-stopped
 volumes:
   postgres_data:
   media:
   platform_node_modules:
+  plugins:

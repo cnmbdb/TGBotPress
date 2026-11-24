@@ -32,6 +32,16 @@ test('authenticates and durably accepts a valid Telegram update once', async () 
   assert.deepEqual(saved, [update])
 })
 
+test('durably accepts Telegram update types declared by an active third-party plugin', async () => {
+  const update={update_id:78,inline_query:{id:'inline-78',query:'search',from:{id:55}}}
+  let ignored:boolean|undefined
+  const deps={...dependencies(async (_rid,_update)=>'inserted'),getPluginUpdateTypes:async()=>['inline_query'],persist:async(_rid:number,_value:TestTelegramUpdate,_ignored?:boolean)=>{ignored=_ignored;return 'inserted' as const}}
+  const response=await telegramWebhookApi(request(update),deps)
+  assert.equal(response.status,200)
+  assert.deepEqual(await response.json(),{ok:true,duplicate:false})
+  assert.equal(ignored,false)
+})
+
 test('acknowledges exact retries and rejects conflicting update ids', async () => {
   const duplicate = await telegramWebhookApi(request(), dependencies(async () => 'duplicate'))
   assert.equal(duplicate.status, 200)

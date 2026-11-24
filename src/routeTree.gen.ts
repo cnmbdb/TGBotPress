@@ -44,6 +44,7 @@ import { Route as ApiPasskeyAuthRouteImport } from './routes/api.passkey-auth'
 import { Route as ApiPasskeyManagementRouteImport } from './routes/api.passkey-management'
 import { Route as ApiPluginConfigLinksRouteImport } from './routes/api.plugin-config-links'
 import { Route as ApiPluginMarketRouteImport } from './routes/api.plugin-market'
+import { Route as ApiPluginRuntimeRouteImport } from './routes/api.plugin-runtime'
 import { Route as ApiPluginsRouteImport } from './routes/api.plugins'
 import { Route as ApiPremiumOrdersRouteImport } from './routes/api.premium-orders'
 import { Route as ApiPremiumPackagesRouteImport } from './routes/api.premium-packages'
@@ -294,6 +295,11 @@ const ApiPluginConfigLinksRoute = ApiPluginConfigLinksRouteImport.update({
 const ApiPluginMarketRoute = ApiPluginMarketRouteImport.update({
   id: '/api/plugin-market',
   path: '/api/plugin-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPluginRuntimeRoute = ApiPluginRuntimeRouteImport.update({
+  id: '/api/plugin-runtime',
+  path: '/api/plugin-runtime',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPluginsRoute = ApiPluginsRouteImport.update({
@@ -723,6 +729,7 @@ export interface FileRoutesByFullPath {
   '/api/passkey-management': typeof ApiPasskeyManagementRoute
   '/api/plugin-config-links': typeof ApiPluginConfigLinksRoute
   '/api/plugin-market': typeof ApiPluginMarketRoute
+  '/api/plugin-runtime': typeof ApiPluginRuntimeRoute
   '/api/plugins': typeof ApiPluginsRoute
   '/api/premium-orders': typeof ApiPremiumOrdersRoute
   '/api/premium-packages': typeof ApiPremiumPackagesRoute
@@ -836,6 +843,7 @@ export interface FileRoutesByTo {
   '/api/passkey-management': typeof ApiPasskeyManagementRoute
   '/api/plugin-config-links': typeof ApiPluginConfigLinksRoute
   '/api/plugin-market': typeof ApiPluginMarketRoute
+  '/api/plugin-runtime': typeof ApiPluginRuntimeRoute
   '/api/plugins': typeof ApiPluginsRoute
   '/api/premium-orders': typeof ApiPremiumOrdersRoute
   '/api/premium-packages': typeof ApiPremiumPackagesRoute
@@ -950,6 +958,7 @@ export interface FileRoutesById {
   '/api/passkey-management': typeof ApiPasskeyManagementRoute
   '/api/plugin-config-links': typeof ApiPluginConfigLinksRoute
   '/api/plugin-market': typeof ApiPluginMarketRoute
+  '/api/plugin-runtime': typeof ApiPluginRuntimeRoute
   '/api/plugins': typeof ApiPluginsRoute
   '/api/premium-orders': typeof ApiPremiumOrdersRoute
   '/api/premium-packages': typeof ApiPremiumPackagesRoute
@@ -1065,6 +1074,7 @@ export interface FileRouteTypes {
     | '/api/passkey-management'
     | '/api/plugin-config-links'
     | '/api/plugin-market'
+    | '/api/plugin-runtime'
     | '/api/plugins'
     | '/api/premium-orders'
     | '/api/premium-packages'
@@ -1178,6 +1188,7 @@ export interface FileRouteTypes {
     | '/api/passkey-management'
     | '/api/plugin-config-links'
     | '/api/plugin-market'
+    | '/api/plugin-runtime'
     | '/api/plugins'
     | '/api/premium-orders'
     | '/api/premium-packages'
@@ -1291,6 +1302,7 @@ export interface FileRouteTypes {
     | '/api/passkey-management'
     | '/api/plugin-config-links'
     | '/api/plugin-market'
+    | '/api/plugin-runtime'
     | '/api/plugins'
     | '/api/premium-orders'
     | '/api/premium-packages'
@@ -1405,6 +1417,7 @@ export interface RootRouteChildren {
   ApiPasskeyManagementRoute: typeof ApiPasskeyManagementRoute
   ApiPluginConfigLinksRoute: typeof ApiPluginConfigLinksRoute
   ApiPluginMarketRoute: typeof ApiPluginMarketRoute
+  ApiPluginRuntimeRoute: typeof ApiPluginRuntimeRoute
   ApiPluginsRoute: typeof ApiPluginsRoute
   ApiPremiumOrdersRoute: typeof ApiPremiumOrdersRoute
   ApiPremiumPackagesRoute: typeof ApiPremiumPackagesRoute
@@ -1728,6 +1741,13 @@ declare module '@tanstack/react-router' {
       path: '/api/plugin-market'
       fullPath: '/api/plugin-market'
       preLoaderRoute: typeof ApiPluginMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/plugin-runtime': {
+      id: '/api/plugin-runtime'
+      path: '/api/plugin-runtime'
+      fullPath: '/api/plugin-runtime'
+      preLoaderRoute: typeof ApiPluginRuntimeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/plugins': {
@@ -2301,6 +2321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPasskeyManagementRoute: ApiPasskeyManagementRoute,
   ApiPluginConfigLinksRoute: ApiPluginConfigLinksRoute,
   ApiPluginMarketRoute: ApiPluginMarketRoute,
+  ApiPluginRuntimeRoute: ApiPluginRuntimeRoute,
   ApiPluginsRoute: ApiPluginsRoute,
   ApiPremiumOrdersRoute: ApiPremiumOrdersRoute,
   ApiPremiumPackagesRoute: ApiPremiumPackagesRoute,

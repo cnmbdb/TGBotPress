@@ -8,14 +8,14 @@ import { classifyTelegramJoinUpdate } from './telegram-join-updates.server'
 import { groupMessage } from './moderation-group-updates.server'
 import { telegramSupportUpdateClaimable } from './telegram-support-updates.server'
 import { enqueueGroupManagementUpdate, isGroupManagementUpdate } from '../plugins/groups/tasks.server'
+import { activeThirdPartyTelegramUpdateTypes } from '../plugins/third-party-runtime.server'
 
-type PollingDatabase = Pick<Pool, 'query' | 'connect'>
+type PollingDatabase = Pick<Pool, 'query' | 'connect'> & { dialect?: 'postgres'|'mysql'|'sqlite'|'d1' }
 type TelegramBot = { rid: number; bot_token: string; last_update_id: number | string | null }
 type TelegramUpdate = { update_id?: unknown; [key: string]: unknown }
 type TelegramResult = { ok?: boolean; result?: unknown }
 
 const allowedUpdates = ['message', 'edited_message', 'callback_query', 'my_chat_member', 'chat_member', 'chat_join_request']
-const acceptedUpdateFields = new Set(allowedUpdates)
 const flagEnabled = (value: string | undefined) => ['1', 'true', 'yes', 'on'].includes((value ?? '').trim().toLowerCase())
 
 async function telegram(fetcher: typeof fetch, token: string, method: string, body?: Record<string, unknown>) {
@@ -165,12 +165,15 @@ export async function pollNextTelegramBot(options: {
       if (!deleted) return { skipped: false, nextAfterBotRid: bot.rid, botRid: bot.rid, failed: 'delete_webhook' }
     }
 
+    const pluginUpdateTypes=await activeThirdPartyTelegramUpdateTypes(pool,bot.rid)
+    const requestedUpdateTypes=[...new Set([...allowedUpdates,...pluginUpdateTypes])]
+    const acceptedUpdateFields=new Set(requestedUpdateTypes)
     const offset = Number(bot.last_update_id || 0) + 1
     const updatesUrl = new URL(`bot${bot.bot_token}/getUpdates`, 'https://api.telegram.org/')
     updatesUrl.searchParams.set('offset', String(offset))
     updatesUrl.searchParams.set('timeout', '0')
     updatesUrl.searchParams.set('limit', '100')
-    updatesUrl.searchParams.set('allowed_updates', JSON.stringify(allowedUpdates))
+    updatesUrl.searchParams.set('allowed_updates', JSON.stringify(requestedUpdateTypes))
     const updatesResponse = await fetcher(updatesUrl, { signal: AbortSignal.timeout(10_000) })
     if (!updatesResponse.ok) return { skipped: false, nextAfterBotRid: bot.rid, botRid: bot.rid, failed: 'get_updates' }
     const updatesData = await updatesResponse.json() as TelegramResult
@@ -200,7 +203,8 @@ export async function pollNextTelegramBot(options: {
       const nativeMemberUpdate = memberUpdateSyncEnabled && isNativeMemberUpdate(bot.rid, candidate)
       const nativeJoinUpdate = joinUpdateSyncEnabled && isNativeJoinUpdate(candidate)
       const nativeGroupUpdate = groupMessageSyncEnabled && isNativeGroupUpdate(candidate)
-      const nativeSupportUpdate = supportUpdateSyncEnabled && isPrivateTelegramMessageUpdate(candidate) &&
+      const hasThirdPartyUpdateType=pluginUpdateTypes.some(type=>type in candidate)
+      const nativeSupportUpdate = supportUpdateSyncEnabled && (hasThirdPartyUpdateType || isPrivateTelegramMessageUpdate(candidate)) &&
         await telegramSupportUpdateClaimable(pool, bot.rid, candidate)
       if (nativeMemberUpdate || nativeJoinUpdate || nativeGroupUpdate || nativeSupportUpdate) {
         const queued = await queueNativeTelegramUpdate(pool, bot.rid, candidate)

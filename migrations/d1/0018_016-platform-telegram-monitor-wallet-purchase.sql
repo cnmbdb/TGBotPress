@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS t_platform_telegram_monitor_wallet_purchase (
   update_rid bigint PRIMARY KEY,
   callback_query_id varchar(200) UNIQUE,
@@ -17,5 +15,3 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_monitor_wallet_purchase (
 
 CREATE INDEX IF NOT EXISTS t_platform_telegram_monitor_wallet_purchase_user_created_idx
   ON t_platform_telegram_monitor_wallet_purchase(bot_rid, chat_id, created_at DESC);
-
-COMMIT;

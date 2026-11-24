@@ -28,7 +28,13 @@ export async function syncPluginConfigRefresh(options:{pool?:Database;logger?:Lo
       const bot=await pool.query<{bot_token:string}>('SELECT bot_token FROM t_telegram_bot WHERE rid=$1',[row.bot_rid])
       if(!bot.rowCount||!bot.rows[0].bot_token)throw new Error('plugin_config_bot_missing')
       const commands=await pool.query<{command:string;description:string;command_type:number}>("SELECT c.command,c.description,c.command_type FROM t_telegram_bot_command c WHERE c.bot_rid=$1 AND platform_plugin_config_effective('command',c.bot_rid,c.rid,c.command,NULL) ORDER BY c.seq_sn DESC,c.rid ASC",[row.bot_rid])
-      const scopes=commandScopes(commands.rows)
+      const pluginCommands=await pool.query<{command_name:string;description:string}>(`SELECT p.command_name,p.description FROM t_platform_plugin_command p
+        JOIN t_platform_plugin_instance i ON i.plugin_id=p.plugin_id AND i.bot_id=p.bot_id AND i.state='active'
+        JOIN t_platform_plugin_lifecycle l ON l.plugin_id=p.plugin_id AND l.state='active'
+        WHERE p.bot_id=$1 ORDER BY p.command_name`,[row.bot_rid])
+      const merged=new Map(commands.rows.map(command=>[command.command,{...command}]))
+      for(const command of pluginCommands.rows)if(!merged.has(command.command_name))merged.set(command.command_name,{command:command.command_name,description:command.description,command_type:1})
+      const scopes=commandScopes([...merged.values()])
       await dependencies.telegram(bot.rows[0].bot_token,'setMyCommands',{commands:scopes.all_private_chats,scope:{type:'all_private_chats'}})
       await dependencies.telegram(bot.rows[0].bot_token,'setMyCommands',{commands:scopes.all_group_chats,scope:{type:'all_group_chats'}})
       await dependencies.invalidate(row.bot_rid).catch(()=>undefined)

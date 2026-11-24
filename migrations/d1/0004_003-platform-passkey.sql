@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_passkey_flow (
   token_hash char(64) PRIMARY KEY,
   purpose varchar(16) NOT NULL CHECK (purpose IN ('register','login')),
@@ -20,4 +19,3 @@ CREATE TABLE IF NOT EXISTS t_platform_passkey_reauth_attempt (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX IF NOT EXISTS t_admin_passkey_user_handle_idx ON t_admin(passkey_user_handle) WHERE passkey_user_handle IS NOT NULL;
-COMMIT;

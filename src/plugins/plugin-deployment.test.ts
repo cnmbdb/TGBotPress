@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { promoteStagedPlugin } from './plugin-deployment.server'
+import { promoteStagedPlugin, rollbackPluginInstall } from './plugin-deployment.server'
 function pool(status = 'staged') {
   const updates: string[] = []
   let staged = { install_path: '/tmp/plugin', integrity_sha512: null as string | null }
@@ -30,6 +30,23 @@ test('keeps staged state when health check fails', async () => {
   const p = pool()
   await assert.rejects(promoteStagedPlugin(p, 'groups', '1.2.3', async () => false), /plugin_health_check_failed/)
   assert.equal(p.updates.filter((sql: string) => sql.includes("status='installed'")).length, 0)
+})
+
+test('rolls back a failed first install when no previous installation exists', async () => {
+  const statements: string[] = []
+  const p = {
+    async query() { return { rows: [], rowCount: 0 } },
+    async connect() {
+      return {
+        async query(sql: string) { statements.push(sql); return { rows: [], rowCount: 0 } },
+        release() {},
+      }
+    },
+  } as any
+  const result = await rollbackPluginInstall(p, 'sample', '@example/tgbotpress-plugin-sample')
+  assert.equal(result.status, 'removed')
+  assert.ok(statements.some(sql => sql.includes("status='removed'")))
+  assert.ok(statements.some(sql => sql.includes("state='uninstalled'")))
 })
 
 test('orchestrates staging, dependency installation, recording, and promotion', async () => {

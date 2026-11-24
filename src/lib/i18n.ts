@@ -2,6 +2,9 @@ export const locales = ['zh-CN','en','ru','ja'] as const
 export type Locale = typeof locales[number]
 export const localeLabels: Record<Locale,string> = {'zh-CN':'中文','en':'English','ru':'Русский','ja':'日本語'}
 const common: Record<string,Record<Locale,string>> = {
+"底部图标地址": {"zh-CN":"底部图标地址",en:"Footer icon URL",ru:"URL значка внизу",ja:"フッターアイコンの URL"},
+"底部跳转链接": {"zh-CN":"底部跳转链接",en:"Footer link URL",ru:"Ссылка внизу",ja:"フッターリンク URL"},
+"底部图标或链接地址无效": {"zh-CN":"底部图标或链接地址无效",en:"Invalid footer icon or link URL",ru:"Неверный URL значка или ссылки",ja:"フッターアイコンまたはリンクの URL が無効です"},
 '重新验证 ETS 登录':{'zh-CN':'重新验证 ETS 登录','en':'Reauthenticate with ETS','ru':'Повторно войти в ETS','ja':'ETS に再ログイン'},
 '控制台':{'zh-CN':'控制台','en':'Console','ru':'Консоль','ja':'コンソール'},
 '登录插件平台':{'zh-CN':'登录插件平台','en':'Sign in to plugin platform','ru':'Войти на платформу плагинов','ja':'プラグインプラットフォームにログイン'},

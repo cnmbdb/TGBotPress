@@ -116,6 +116,7 @@ export async function setPluginConfigAssociations(pool:Db,input:{type:PluginConf
 
 export async function enqueuePluginConfigRefresh(pool:Pick<Pool,'query'>,pluginId:string){
   const bots=await pool.query<{bot_rid:number}>(`SELECT bot_rid FROM t_platform_plugin_config_link WHERE plugin_id=$1 AND bot_rid>0
+    UNION SELECT bot_id AS bot_rid FROM t_platform_plugin_command WHERE plugin_id=$1
     UNION SELECT r.bot_rid FROM t_telegram_bot_keyreply_keyboard r JOIN t_platform_plugin_config_link l ON l.config_type='keyboard' AND l.config_rid=r.keyboard_rid AND l.bot_rid=0 WHERE l.plugin_id=$1
     UNION SELECT r.bot_rid FROM t_telegram_bot_ad_keyboard r JOIN t_platform_plugin_config_link l ON l.config_type='keyboard' AND l.config_rid=r.keyboard_rid AND l.bot_rid=0 WHERE l.plugin_id=$1
     UNION SELECT c.bot_rid FROM t_telegram_bot_command c WHERE $1=ANY(platform_plugin_config_targets('command',c.bot_rid,c.rid,c.command,NULL))

@@ -41,12 +41,15 @@ services:
       REDIS_HOST: redis
       WEBHOOK_PROXY_PORT: 8084
       MEDIA_STORAGE_ROOT: /legacy-storage
+      PLATFORM_PLUGIN_DIR: /plugin-storage
     ports:
       - "127.0.0.1:8083:8083"
       - "127.0.0.1:8084:8084"
     volumes:
       - media:/legacy-storage
+      - plugins:/plugin-storage
     restart: unless-stopped
 volumes:
   postgres_data:
   media:
+  plugins:

@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS t_platform_telegram_premium_purchase (
   update_rid bigint PRIMARY KEY,
   bot_rid integer NOT NULL,
@@ -18,5 +16,3 @@ CREATE TABLE IF NOT EXISTS t_platform_telegram_premium_purchase (
 
 CREATE INDEX IF NOT EXISTS t_platform_telegram_premium_purchase_user_created_idx
   ON t_platform_telegram_premium_purchase(bot_rid, chat_id, created_at DESC);
-
-COMMIT;

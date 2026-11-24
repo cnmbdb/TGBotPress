@@ -7,7 +7,7 @@ export function sqlitePlaceholders(sql:string,values:unknown[]=[]):{sql:string;v
   const mapped:unknown[]=[]
   const arrayParameters=new Set<number>()
   sql=sql.replace(/([\w.`]+)\s*=\s*ANY\(\$(\d+)(?:::\w+\[\])?\)/gi,(_m,col,pos)=>{arrayParameters.add(Number(pos)-1);return `${col} IN (SELECT value FROM json_each($${pos}))`})
-  let out='',mode:'normal'|'single'|'double'|'backtick'|'line'|'block'='normal'
+  let out='',placeholderCount=0,mode:'normal'|'single'|'double'|'backtick'|'line'|'block'='normal'
   for(let i=0;i<sql.length;i++){
     const c=sql[i],n=sql[i+1]
     if(mode==='single'||mode==='double'||mode==='backtick'){
@@ -21,11 +21,11 @@ export function sqlitePlaceholders(sql:string,values:unknown[]=[]):{sql:string;v
     if(c==="'"){mode='single';out+=c;continue}if(c==='"'){mode='double';out+=c;continue}if(c==='`'){mode='backtick';out+=c;continue}
     if(c==='-'&&n==='-'){mode='line';out+=c+n;i++;continue}if(c==='/'&&n==='*'){mode='block';out+=c+n;i++;continue}
     if(c===':'&&n===':'){let j=i+2;while(/[a-z0-9_]/i.test(sql[j]||''))j++;if(sql[j]==='('){while(j<sql.length&&sql[j]!==')')j++;if(sql[j]===')')j++}if(sql[j]==='['&&sql[j+1]===']')j+=2;if(j>i+2){i=j-1;continue}}
-    if(c==='$'&&/[1-9]/.test(n||'')){let j=i+1;while(/[0-9]/.test(sql[j]||''))j++;const pos=Number(sql.slice(i+1,j))-1;if(pos>=values.length)throw Error(`sqlite_parameter_missing:${pos+1}`);out+='?';mapped.push(arrayParameters.has(pos)?JSON.stringify(values[pos]):values[pos]);i=j-1;continue}
+    if(c==='$'&&/[1-9]/.test(n||'')){let j=i+1;while(/[0-9]/.test(sql[j]||''))j++;const pos=Number(sql.slice(i+1,j))-1;if(pos>=values.length)throw Error(`sqlite_parameter_missing:${pos+1}`);out+='?';mapped.push(arrayParameters.has(pos)?JSON.stringify(values[pos]):values[pos]);placeholderCount++;i=j-1;continue}
+    if(c==='?')placeholderCount++
     out+=c
   }
-  const used=[...out.matchAll(/\?/g)].length
-  if(used!==mapped.length)throw Error(`sqlite_parameter_count_mismatch:${used}:${mapped.length}`)
+  if(placeholderCount!==mapped.length)throw Error(`sqlite_parameter_count_mismatch:${placeholderCount}:${mapped.length}`)
   out=out.replace(/datetime\((\?)\)/gi, "datetime($1,'unixepoch')")
   out=out.replace(/enabled_bot_ids\s*=\s*'\{\}'/gi,"enabled_bot_ids='[]'")
     .replace(/\bILIKE\b/gi,'LIKE').replace(/\bto_timestamp\(/gi,"datetime(").replace(/\bnow\(\)/gi,"(strftime('%Y-%m-%d %H:%M:%f','now'))")

@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_auth_ticket (
  token_hash char(64) PRIMARY KEY, admin_id bigint,
  device_session_id bigint NOT NULL REFERENCES t_admin_device_session(rid),
@@ -40,4 +39,3 @@ CREATE TABLE IF NOT EXISTS t_admin_passkey (
 );
 CREATE INDEX IF NOT EXISTS t_admin_passkey_admin_active_idx
  ON t_admin_passkey (admin_id, created_at DESC) WHERE revoked_at IS NULL;
-COMMIT;

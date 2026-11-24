@@ -3,13 +3,15 @@ import { db } from './db.server'
 import { webhookSecret } from './bot-service.server'
 import { enqueueGroupManagementUpdate, isGroupManagementUpdate } from '../plugins/groups/tasks.server'
 import { trustedRequestHostname } from './cloudflare-access.server'
+import { activeThirdPartyTelegramUpdateTypes } from '../plugins/third-party-runtime.server'
 
 type TelegramUpdate = { update_id: number; [key: string]: unknown }
-type Queryable = Pick<typeof db, 'query'|'connect'>
+type Queryable = Pick<typeof db, 'query'|'connect'> & { dialect?: 'postgres'|'mysql'|'sqlite'|'d1' }
 type WebhookDependencies = {
   enabled: boolean
   getBotToken: (rid: number) => Promise<string | null>
   expectedSecret: (rid: number, token: string) => string
+  getPluginUpdateTypes?: (rid: number) => Promise<string[]>
   persist: (rid: number, update: TelegramUpdate, ignored?: boolean) => Promise<'inserted' | 'duplicate' | 'conflict'>
 }
 
@@ -23,6 +25,7 @@ const defaultDependencies = (pool: Queryable = db): WebhookDependencies => ({
     return result.rows[0]?.bot_token || null
   },
   expectedSecret: (rid, token) => webhookSecret(rid, token, process.env.TELEGRAM_WEBHOOK_SECRET_KEY || '', process.env.APP_KEY || ''),
+  getPluginUpdateTypes: async (rid) => activeThirdPartyTelegramUpdateTypes(pool,rid),
   persist: async (rid, update, ignored = false) => {
     const payload = JSON.stringify(update)
     const inserted = await pool.query<{rid:number}>(
@@ -94,7 +97,8 @@ export async function telegramWebhookApi(request: Request, dependencies: Webhook
   if (!Number.isSafeInteger(update.update_id) || Number(update.update_id) < 0) return json(400, { ok: false })
 
   try {
-    const supportedUpdate = ['message', 'edited_message', 'callback_query', 'my_chat_member', 'chat_member', 'chat_join_request'].some(field => field in update)
+    const pluginUpdateTypes=await dependencies.getPluginUpdateTypes?.(rid)??[]
+    const supportedUpdate = ['message', 'edited_message', 'callback_query', 'my_chat_member', 'chat_member', 'chat_join_request', ...pluginUpdateTypes].some(field => field in update)
     const result = await dependencies.persist(rid, update as TelegramUpdate, !supportedUpdate)
     if (result === 'conflict') return json(409, { ok: false })
     const response = { ok: true, duplicate: result === 'duplicate' }

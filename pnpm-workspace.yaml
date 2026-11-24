@@ -4,5 +4,6 @@ packages:
 allowBuilds:
   argon2: true
   esbuild: true
+  workerd: true
 
 linkWorkspacePackages: true

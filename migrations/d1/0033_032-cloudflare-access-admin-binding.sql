@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE IF NOT EXISTS t_platform_access_admin_binding (
   email varchar(320) PRIMARY KEY,
   admin_id bigint NOT NULL UNIQUE REFERENCES t_admin(id) ON DELETE CASCADE,
@@ -13,4 +12,3 @@ CREATE TABLE IF NOT EXISTS t_platform_access_session (
   expires_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS t_platform_access_session_expiry_idx ON t_platform_access_session(expires_at);
-COMMIT;

@@ -39,8 +39,9 @@ import { pluginCatalog } from '../plugins/catalog'
 import { managedModuleIds, runManagedPluginTask, runPluginTaskWithLease } from '../plugins/module-lifecycle.server'
 import { syncPluginConfigRefresh } from './plugin-config-refresh.server'
 import { refreshTanstackImageCheck, runTanstackAutoUpdate } from './settings-version.server'
+import { runThirdPartyPluginTasks } from '../plugins/third-party-runtime.server'
 
-type WorkerDatabase = SchedulerDatabase & Pick<Pool, 'connect'>
+type WorkerDatabase = SchedulerDatabase & Pick<Pool, 'connect'> & { dialect?: 'postgres'|'mysql'|'sqlite'|'d1' }
 
 export type PlatformWorkerOptions = {
   pool?: WorkerDatabase
@@ -265,6 +266,11 @@ export function platformScheduledTasks(pool: WorkerDatabase, logger: SchedulerLo
       name: 'pluginconfigrefresh',
       intervalMs: 5_000,
       run: shouldContinue => syncPluginConfigRefresh({ pool, logger, shouldContinue, enabled: process.env.PLATFORM_TELEGRAM_ACTIONS === 'true' }),
+    },
+    {
+      name: 'thirdpartyplugins',
+      intervalMs: 1_000,
+      run: shouldContinue => pool.dialect === 'postgres' ? runThirdPartyPluginTasks(pool, shouldContinue, logger) : Promise.resolve({ skipped: true }),
     },
     {
       name: 'telegrampolling',

@@ -1,0 +1,83 @@
+name: Third-Party Plugin Runtime CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/plugin-runtime-ci.yml'
+      - 'docs/plugin-development.md'
+      - 'migrations/038-plugin-npm-source.sql'
+      - 'migrations/039-third-party-plugin-manifest.sql'
+      - 'migrations/040-third-party-plugin-storage.sql'
+      - 'migrations/041-third-party-plugin-task-schedule.sql'
+      - 'migrations/042-third-party-plugin-bot-storage.sql'
+      - 'migrations/043-third-party-plugin-event-delivery.sql'
+      - 'migrations/045-third-party-plugin-bot-instances.sql'
+      - 'migrations/046-third-party-plugin-commands.sql'
+      - 'package.json'
+      - 'packages/devkit/**'
+      - 'packages/plugin-sdk/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'src/plugins/**'
+      - 'src/routes/api.plugin-runtime.ts'
+      - 'src/routes/console.plugins.tsx'
+      - 'src/server/platform-worker.server.ts'
+      - 'src/server/plugin-runtime-api.server.ts'
+      - 'src/server/plugin-status-api.server.ts'
+      - 'src/server/telegram-polling.server.ts'
+      - 'src/server/telegram-polling.test.ts'
+      - 'src/server/telegram-support-updates.server.ts'
+      - 'src/server/telegram-webhook.server.ts'
+      - 'src/server/telegram-webhook.test.ts'
+  push:
+    branches: ['**']
+    paths:
+      - '.github/workflows/plugin-runtime-ci.yml'
+      - 'docs/plugin-development.md'
+      - 'migrations/038-plugin-npm-source.sql'
+      - 'migrations/039-third-party-plugin-manifest.sql'
+      - 'migrations/040-third-party-plugin-storage.sql'
+      - 'migrations/041-third-party-plugin-task-schedule.sql'
+      - 'migrations/042-third-party-plugin-bot-storage.sql'
+      - 'migrations/043-third-party-plugin-event-delivery.sql'
+      - 'migrations/045-third-party-plugin-bot-instances.sql'
+      - 'migrations/046-third-party-plugin-commands.sql'
+      - 'package.json'
+      - 'packages/devkit/**'
+      - 'packages/plugin-sdk/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'src/plugins/**'
+      - 'src/routes/api.plugin-runtime.ts'
+      - 'src/routes/console.plugins.tsx'
+      - 'src/server/platform-worker.server.ts'
+      - 'src/server/plugin-runtime-api.server.ts'
+      - 'src/server/plugin-status-api.server.ts'
+      - 'src/server/telegram-polling.server.ts'
+      - 'src/server/telegram-polling.test.ts'
+      - 'src/server/telegram-support-updates.server.ts'
+      - 'src/server/telegram-webhook.server.ts'
+      - 'src/server/telegram-webhook.test.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  plugin-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm exec tsx --test src/plugins/*.test.ts
+      - run: pnpm exec tsx --test src/server/telegram-polling.test.ts src/server/telegram-webhook.test.ts
+      - run: pnpm --filter @tgbotpress/devkit test
